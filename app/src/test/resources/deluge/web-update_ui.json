@@ -1,0 +1,106 @@
+{
+  "error": null,
+  "id": "-900",
+  "result": {
+    "connected": true,
+    "filters": {
+      "label": [
+        [
+          "",
+          9
+        ],
+        [
+          "All",
+          9
+        ],
+        [
+          "Anime",
+          0
+        ],
+        [
+          "Movie",
+          0
+        ]
+      ],
+      "state": [
+        [
+          "All",
+          9
+        ],
+        [
+          "Downloading",
+          0
+        ],
+        [
+          "Seeding",
+          0
+        ],
+        [
+          "Active",
+          0
+        ],
+        [
+          "Paused",
+          9
+        ],
+        [
+          "Queued",
+          0
+        ],
+        [
+          "Checking",
+          0
+        ],
+        [
+          "Error",
+          0
+        ]
+      ],
+      "tracker_host": [
+        [
+          "All",
+          9
+        ],
+        [
+          "Error",
+          0
+        ],
+        [
+          "host.1",
+          4
+        ],
+        [
+          "host.2",
+          4
+        ],
+        [
+          "track.wtf",
+          1
+        ]
+      ]
+    },
+    "stats": {
+      "dht_nodes": 837,
+      "download_protocol_rate": 1684,
+      "download_rate": 0,
+      "free_space": 34578901234,
+      "has_incoming_connections": true,
+      "max_download": -1.0,
+      "max_num_connections": 210,
+      "max_upload": -1.0,
+      "num_connections": 0,
+      "upload_protocol_rate": 9273,
+      "upload_rate": 0
+    },
+    "torrents": {
+      "f0938a29f938c9374ca93af0298d1a02983d947": {
+        "eta": 0,
+        "label": "",
+        "name": "my-awesome-file-name.mkv",
+        "progress": 100.0,
+        "queue": -1,
+        "state": "Paused"
+      }
+    }
+  }
+}
