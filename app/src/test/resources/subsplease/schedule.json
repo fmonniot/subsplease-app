@@ -1,0 +1,67 @@
+{
+  "tz": "America\/Los_Angeles",
+  "schedule": {
+    "Monday": [
+      {
+        "title": "Tatoeba Last Dungeon Mae no Mura no Shounen ga Joban no Machi de Kurasu Youna Monogatari",
+        "page": "tatoeba-last-dungeon-mae-no-mura-no-shounen-ga-joban-no-machi-de-kurasu-youna-monogatari",
+        "image_url": "\/wp-content\/uploads\/2021\/01\/106599.jpg",
+        "time": "06:30"
+      }
+    ],
+    "Tuesday": [
+      {
+        "title": "Tensei Shitara Slime Datta Ken",
+        "page": "tensei-shitara-slime-datta-ken",
+        "image_url": "\/wp-content\/uploads\/2021\/01\/93337.jpg",
+        "time": "08:00"
+      }
+    ],
+    "Wednesday": [
+      {
+        "title": "Log Horizon S3",
+        "page": "log-horizon-s3",
+        "image_url": "\/wp-content\/uploads\/2021\/01\/108026.jpg",
+        "time": "04:00"
+      }
+    ],
+    "Thursday": [
+      {
+        "title": "Yuru Camp S2",
+        "page": "yuru-camp-s2",
+        "image_url": "\/wp-content\/uploads\/2021\/01\/110636.jpg",
+        "time": "08:00"
+      },
+      {
+        "title": "Tenchi Souzou Design-bu",
+        "page": "tenchi-souzou-design-bu",
+        "image_url": "\/wp-content\/uploads\/2021\/01\/109865.jpg",
+        "time": "08:30"
+      }
+    ],
+    "Friday": [
+      {
+        "title": "Jaku-Chara Tomozaki-kun",
+        "page": "jaku-chara-tomozaki-kun",
+        "image_url": "\/wp-content\/uploads\/2021\/01\/109232.jpg",
+        "time": "04:30"
+      }
+    ],
+    "Saturday": [
+      {
+        "title": "Horimiya",
+        "page": "horimiya",
+        "image_url": "\/wp-content\/uploads\/2021\/01\/110336.jpg",
+        "time": "09:00"
+      }
+    ],
+    "Sunday": [
+      {
+        "title": "Non Non Biyori Nonstop",
+        "page": "non-non-biyori-nonstop",
+        "image_url": "\/wp-content\/uploads\/2021\/01\/107670.jpg",
+        "time": "09:35"
+      }
+    ]
+  }
+}
