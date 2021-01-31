@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="Deluge">
+
+        <EditTextPreference
+            android:defaultValue="Default value"
+            android:key="deluge_username"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="username" />
+        <EditTextPreference
+            android:defaultValue="Default value"
+            android:key="deluge_password"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="Password" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="deluge_use_http_basic"
+            android:title="HTTP Basic" />
+        <EditTextPreference
+            android:defaultValue="Default value"
+            android:key="deluge_http_username"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="HTTP Basic user" />
+        <EditTextPreference
+            android:defaultValue="Default value"
+            android:key="deluge_http_password"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="HTTP Basic password" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Subsplease">
+        <Preference
+            android:title="Clear Cache"
+            android:key="subsplease_clear_cache"
+            android:summary="Call subsplease on the next shows display"
+            />
+        <ListPreference
+            android:defaultValue="true"
+            android:entries="@array/subsplease_download_quality"
+            android:entryValues="@array/subsplease_download_quality"
+            android:key="subsplease_download_quality"
+            android:title="Download Quality" />
+
+    </PreferenceCategory>
+    <PreferenceCategory android:title="About">
+        <Preference
+            android:title="Version"
+            android:key="subsplease_version"
+            android:summary="1f2e7f45 - Jan 30th, 2021"
+            />
+        <Preference
+            android:title="Licenses"
+            android:key="subsplease_licenses"
+            />
+    </PreferenceCategory>
+</PreferenceScreen>
