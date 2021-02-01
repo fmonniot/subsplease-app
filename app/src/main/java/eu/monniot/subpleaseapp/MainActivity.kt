@@ -5,16 +5,17 @@ import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.setContent
-import androidx.compose.ui.res.loadVectorResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.*
+import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
+import eu.monniot.subpleaseapp.ui.shows.ScheduleScreen
 import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,15 +42,14 @@ class MainActivity : AppCompatActivity() {
                                 val currentRoute =
                                     navBackStackEntry?.arguments?.getString(KEY_ROUTE)
                                         ?: "/schedule"
-                                Log.d("currentRoute = ", currentRoute ?: "null")
+                                Log.d("currentRoute = ", currentRoute)
                                 items.forEach { screen ->
                                     BottomNavigationItem(
                                         icon = {
-                                            val image = loadVectorResource(id = screen.iconId)
-                                            //loadVectorResource will load the vector image asynchronous
-                                            image.resource.resource?.let {
-                                                Icon(it, contentDescription = screen.label)
-                                            }
+                                            Icon(
+                                                vectorResource(screen.iconId),
+                                                contentDescription = screen.label
+                                            )
                                         },
                                         label = { Text(screen.label) },
                                         selected = currentRoute == screen.route,
@@ -73,6 +73,19 @@ class MainActivity : AppCompatActivity() {
 
                         NavHost(navController, startDestination = Screen.Schedule.route) {
                             composable(Screen.Schedule.route) {
+                                val http = OkHttpClient.Builder()
+                                    .addInterceptor(run {
+                                        val h = HttpLoggingInterceptor()
+                                        h.level = HttpLoggingInterceptor.Level.BODY
+                                        h
+                                    })
+                                    .build()
+                                val api = SubsPleaseApi.build(http)
+
+                                ScheduleScreen(navigateShowDetail = { page ->
+                                    Log.d("MainActivity", "Navigating to slug ${page}")
+                                }, api)
+
                             }
 
                             composable(Screen.Subscriptions.route) { Text("Active Subscriptions") }
