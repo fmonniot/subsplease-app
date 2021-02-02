@@ -3,6 +3,15 @@ plugins {
     id 'kotlin-android'
 }
 
+def getGitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
 android {
     compileSdkVersion 30
 
@@ -12,6 +21,9 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
+
+        buildConfigField "String", "GIT_HASH", "\"${getGitHash()}\""
+        buildConfigField "String", "BUILD_TIME", "\"${System.currentTimeMillis()}\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -47,7 +59,7 @@ dependencies {
     implementation "androidx.compose.ui:ui-tooling:$compose_version"
     implementation "androidx.navigation:navigation-compose:1.0.0-alpha06"
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-rc01'
-    implementation 'androidx.preference:preference:1.1.1'
+    implementation "androidx.security:security-crypto:1.1.0-alpha03"
 
     implementation "dev.chrisbanes.accompanist:accompanist-coil:0.5.0"
     implementation 'com.github.moove-it:fakeit:v0.7'

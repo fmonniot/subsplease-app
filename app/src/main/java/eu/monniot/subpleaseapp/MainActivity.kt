@@ -12,6 +12,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.*
 import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
+import eu.monniot.subpleaseapp.ui.settings.SettingsScreen
 import eu.monniot.subpleaseapp.ui.shows.ScheduleScreen
 import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
 import okhttp3.OkHttpClient
@@ -91,7 +92,7 @@ class MainActivity : AppCompatActivity() {
                             composable(Screen.Subscriptions.route) { Text("Active Subscriptions") }
                             composable(Screen.Downloads.route) { Text("Downloads") }
                             composable(Screen.Settings.route) {
-                                Text("Settings")
+                                SettingsScreen()
                             }
                         }
                     }
