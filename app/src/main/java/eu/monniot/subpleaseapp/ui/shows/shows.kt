@@ -12,58 +12,28 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.accompanist.coil.CoilImage
-import eu.monniot.subpleaseapp.clients.subsplease.Show
-import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
+import eu.monniot.subpleaseapp.data.Show
 import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
-import java.time.ZoneId
 
-
-/**
- * Stateful component managing the schedule screen
- *
- * @param navigateShowDetail request navigation to show's page
- * @param api data source for shows
- */
-@Composable
-fun ScheduleScreen(
-    navigateShowDetail: (String) -> Unit,
-    api: SubsPleaseApi,
-) {
-    var schedule: Map<String, List<Show>> by remember { mutableStateOf(emptyMap()) }
-
-    LaunchedEffect(key1 = "schedule") {
-        println("Getting schedule")
-        val r = api.schedule(ZoneId.of("America/Los_Angeles")) // TODO Get from system
-
-        println("Schedule obtained: ${r.schedule.keys}")
-        schedule = r.schedule
-    }
-
-    ScheduleScreen(
-        navigateShowDetail = navigateShowDetail,
-        schedule = schedule
-    )
-}
 
 /**
  * Stateless screen displays the content of `schedule`
  */
 @Composable
-fun ScheduleScreen(
+fun ShowsScreen(
     navigateShowDetail: (String) -> Unit,
+    toggleShowSubscription: (Show) -> Unit,
     schedule: Map<String, List<Show>>,
 ) {
 
     LazyColumn(modifier = Modifier.padding(top = 16.dp, bottom = 56.dp)) {
-
-        println("schedule: ${schedule.keys}")
 
         items(schedule.toList()) { (day, shows) ->
             Text(
@@ -76,9 +46,9 @@ fun ScheduleScreen(
                 ShowItem(
                     showTitle = show.title,
                     imageUrl = show.imageUrl,
-                    subscribed = false,
+                    subscribed = show.subscribed,
                     onClick = { navigateShowDetail(show.page) },
-                    onSubscribeToggle = { }
+                    onSubscribeToggle = { toggleShowSubscription(show) }
                 )
                 ShowDivider()
             }
@@ -86,6 +56,7 @@ fun ScheduleScreen(
     }
 }
 
+// TODO Use ListItem and also add the time on second line. See how it behaves with very long title.
 @Composable
 private fun ShowItem(
     showTitle: String,
@@ -208,56 +179,80 @@ fun ShowSubscribedLongNamePreview() {
 
 @Preview
 @Composable
-fun SchedulePreview() {
+fun ShowsPreview() {
     val tatoeba = Show(
         page = "tatoeba-last-dungeon-mae-no-mura-no-shounen-ga-joban-no-machi-de-kurasu-youna-monogatari",
         time = "06:30",
         title = "Tatoeba Last Dungeon Mae no Mura no Shounen ga Joban no Machi de Kurasu Youna Monogatari",
-        imageUrl = "/wp-content/uploads/2021/01/106599.jpg"
+        imageUrl = "/wp-content/uploads/2021/01/106599.jpg",
+        synopsis = null,
+        releaseDay = "",
+        season = ""
     )
 
     val tensei = Show(
         page = "tensei-shitara-slime-datta-ken",
         time = "08:00",
         title = "Tensei Shitara Slime Datta Ken",
-        imageUrl = "/wp-content/uploads/2021/01/93337.jpg"
+        imageUrl = "/wp-content/uploads/2021/01/93337.jpg",
+        synopsis = null,
+        releaseDay = "",
+        season = ""
     )
 
     val horizon = Show(
         page = "log-horizon-s3",
         time = "04:00",
         title = "Log Horizon S3",
-        imageUrl = "/wp-content/uploads/2021/01/108026.jpg"
+        imageUrl = "/wp-content/uploads/2021/01/108026.jpg",
+        synopsis = null,
+        releaseDay = "",
+        season = ""
     )
     val yuru = Show(
         page = "yuru-camp-s2",
         time = "08:00",
         title = "Yuru Camp S2",
-        imageUrl = "/wp-content/uploads/2021/01/110636.jpg"
+        imageUrl = "/wp-content/uploads/2021/01/110636.jpg",
+        synopsis = null,
+        releaseDay = "",
+        season = ""
     )
     val tenchi = Show(
         page = "tenchi-souzou-design-bu",
         time = "08:30",
         title = "Tenchi Souzou Design-bu",
-        imageUrl = "/wp-content/uploads/2021/01/109865.jpg"
+        imageUrl = "/wp-content/uploads/2021/01/109865.jpg",
+        synopsis = null,
+        releaseDay = "",
+        season = ""
     )
     val jaku = Show(
         page = "jaku-chara-tomozaki-kun",
         time = "04:30",
         title = "Jaku-Chara Tomozaki-kun",
-        imageUrl = "/wp-content/uploads/2021/01/109232.jpg"
+        imageUrl = "/wp-content/uploads/2021/01/109232.jpg",
+        synopsis = null,
+        releaseDay = "",
+        season = ""
     )
     val horimiya = Show(
         page = "horimiya",
         time = "09:00",
         title = "Horimiya",
-        imageUrl = "/wp-content/uploads/2021/01/110336.jpg"
+        imageUrl = "/wp-content/uploads/2021/01/110336.jpg",
+        synopsis = null,
+        releaseDay = "",
+        season = ""
     )
     val nonNon = Show(
         page = "non-non-biyori-nonstop",
         time = "09:35",
         title = "Non Non Biyori Nonstop",
-        imageUrl = "/wp-content/uploads/2021/01/107670.jpg"
+        imageUrl = "/wp-content/uploads/2021/01/107670.jpg",
+        synopsis = null,
+        releaseDay = "",
+        season = ""
     )
 
     val schedule = mapOf(
@@ -272,7 +267,7 @@ fun SchedulePreview() {
 
     SubPleaseAppTheme {
         Surface {
-            ScheduleScreen({}, schedule)
+            ShowsScreen({}, {}, schedule)
         }
     }
 }

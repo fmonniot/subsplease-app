@@ -11,9 +11,13 @@ import androidx.compose.ui.platform.setContent
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.*
+import androidx.room.Room
 import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
+import eu.monniot.subpleaseapp.data.AppDatabase
+import eu.monniot.subpleaseapp.data.ShowsStore
 import eu.monniot.subpleaseapp.ui.settings.SettingsScreen
 import eu.monniot.subpleaseapp.ui.shows.ScheduleScreen
+import eu.monniot.subpleaseapp.ui.shows.ScheduleViewModel
 import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -28,6 +32,21 @@ class MainActivity : AppCompatActivity() {
             Screen.Downloads,
             Screen.Settings
         )
+
+        val http = OkHttpClient.Builder()
+            .addInterceptor(run {
+                val h = HttpLoggingInterceptor()
+                h.level = HttpLoggingInterceptor.Level.BODY
+                h
+            })
+            .build()
+        val api = SubsPleaseApi.build(http)
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "app-database"
+        ).build()
+
+        val store = ShowsStore(db.showDao(), api)
 
         setContent {
             SubPleaseAppTheme {
@@ -74,19 +93,11 @@ class MainActivity : AppCompatActivity() {
 
                         NavHost(navController, startDestination = Screen.Schedule.route) {
                             composable(Screen.Schedule.route) {
-                                val http = OkHttpClient.Builder()
-                                    .addInterceptor(run {
-                                        val h = HttpLoggingInterceptor()
-                                        h.level = HttpLoggingInterceptor.Level.BODY
-                                        h
-                                    })
-                                    .build()
-                                val api = SubsPleaseApi.build(http)
+                                val scheduleViewModel = ScheduleViewModel(store)
 
-                                ScheduleScreen(navigateShowDetail = { page ->
-                                    Log.d("MainActivity", "Navigating to slug ${page}")
-                                }, api)
-
+                                ScheduleScreen(scheduleViewModel) { page ->
+                                    Log.d("MainActivity", "Navigating to slug $page")
+                                }
                             }
 
                             composable(Screen.Subscriptions.route) { Text("Active Subscriptions") }
