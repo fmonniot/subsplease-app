@@ -5,8 +5,7 @@ import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.platform.setContent
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -18,6 +17,8 @@ import eu.monniot.subpleaseapp.data.ShowsStore
 import eu.monniot.subpleaseapp.ui.settings.SettingsScreen
 import eu.monniot.subpleaseapp.ui.shows.ScheduleScreen
 import eu.monniot.subpleaseapp.ui.shows.ScheduleViewModel
+import eu.monniot.subpleaseapp.ui.shows.SubscriptionsScreen
+import eu.monniot.subpleaseapp.ui.shows.SubscriptionsViewModel
 import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -61,7 +62,7 @@ class MainActivity : AppCompatActivity() {
                                 // safe to assume the first screen shown (for use /schedule) ?
                                 val currentRoute =
                                     navBackStackEntry?.arguments?.getString(KEY_ROUTE)
-                                        ?: "/schedule"
+                                        ?: Screen.Subscriptions.route
                                 Log.d("currentRoute = ", currentRoute)
                                 items.forEach { screen ->
                                     BottomNavigationItem(
@@ -91,7 +92,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     ) {
 
-                        NavHost(navController, startDestination = Screen.Schedule.route) {
+                        NavHost(navController, startDestination = Screen.Subscriptions.route) {
                             composable(Screen.Schedule.route) {
                                 val scheduleViewModel = ScheduleViewModel(store)
 
@@ -100,8 +101,14 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
 
-                            composable(Screen.Subscriptions.route) { Text("Active Subscriptions") }
                             composable(Screen.Downloads.route) { Text("Downloads") }
+                            composable(Screen.Subscriptions.route) {
+                                val subscriptionsViewModel = SubscriptionsViewModel(store)
+
+                                SubscriptionsScreen(
+                                    viewModel = subscriptionsViewModel,
+                                    navigateShowDetail = { /*TODO*/ })
+                            }
                             composable(Screen.Settings.route) {
                                 SettingsScreen()
                             }
@@ -115,9 +122,7 @@ class MainActivity : AppCompatActivity() {
 
 sealed class Screen(val route: String, val label: String, @DrawableRes val iconId: Int) {
     object Schedule : Screen("/schedule", "Schedule", R.drawable.ic_baseline_today_24)
-    object Subscriptions :
-        Screen("/subscriptions", "Subscriptions", R.drawable.ic_baseline_view_list_24)
-
+    object Subscriptions : Screen("/subscriptions", "My Subs", R.drawable.ic_baseline_view_list_24)
     object Downloads : Screen("/downloads", "Downloads", R.drawable.ic_baseline_get_app_24)
     object Settings : Screen("/settings", "Settings", R.drawable.ic_baseline_settings_24)
 }
