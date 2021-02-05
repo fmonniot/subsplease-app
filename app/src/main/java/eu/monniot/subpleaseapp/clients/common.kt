@@ -33,16 +33,6 @@ private fun OkHttpClient.execAs(request: Request, cb: (Result<ResponseBody>) -> 
     }
 }
 
-internal fun OkHttpClient.execAsString(request: Request, cb: (Result<String>) -> Unit) {
-    this.execAs(request) {
-        cb(it.map { body ->
-            body.use {
-                body.string()
-            }
-        })
-    }
-}
-
 // Remember to .use the resulting source
 internal fun OkHttpClient.execAsSource(request: Request, cb: (Result<BufferedSource>) -> Unit) {
     this.execAs(request) {
@@ -52,11 +42,4 @@ internal fun OkHttpClient.execAsSource(request: Request, cb: (Result<BufferedSou
     }
 }
 
-internal fun OkHttpClient.execute(url: String, cb: (Result<String>) -> Unit) {
-    val request = Request.Builder()
-        .url(url)
-        .build()
-
-    this.execAsString(request, cb)
-}
 

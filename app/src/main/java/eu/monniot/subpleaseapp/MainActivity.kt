@@ -6,15 +6,20 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.setContent
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.*
 import androidx.room.Room
+import eu.monniot.subpleaseapp.clients.deluge.DelugeClient
 import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
 import eu.monniot.subpleaseapp.data.AppDatabase
 import eu.monniot.subpleaseapp.data.ShowsStore
+import eu.monniot.subpleaseapp.ui.downloads.DownloadsScreen
 import eu.monniot.subpleaseapp.ui.settings.SettingsScreen
+import eu.monniot.subpleaseapp.ui.settings.openSharedPrefs
+import eu.monniot.subpleaseapp.ui.settings.string
 import eu.monniot.subpleaseapp.ui.shows.ScheduleScreen
 import eu.monniot.subpleaseapp.ui.shows.ScheduleViewModel
 import eu.monniot.subpleaseapp.ui.shows.SubscriptionsScreen
@@ -101,13 +106,31 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
 
-                            composable(Screen.Downloads.route) { Text("Downloads") }
                             composable(Screen.Subscriptions.route) {
                                 val subscriptionsViewModel = SubscriptionsViewModel(store)
 
                                 SubscriptionsScreen(
                                     viewModel = subscriptionsViewModel,
                                     navigateShowDetail = { /*TODO*/ })
+                            }
+                            composable(Screen.Downloads.route) {
+                                val context = AmbientContext.current
+                                val preferences = openSharedPrefs(context)
+
+                                // TODO Use values through remember and accessor
+                                val host = preferences.string("deluge_host").value().value
+                                val user = preferences.string("deluge_username").value().value
+                                val pass = preferences.string("deluge_password").value().value
+
+                                if (host != null && user != null && pass != null) {
+                                    val client = DelugeClient(host, user, pass, http)
+
+                                    DownloadsScreen(client = client)
+
+                                } else {
+                                    Text("Set up server configuration in the Settings please")
+                                }
+
                             }
                             composable(Screen.Settings.route) {
                                 SettingsScreen()

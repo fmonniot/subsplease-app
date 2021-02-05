@@ -3,6 +3,7 @@ package eu.monniot.subpleaseapp.clients
 import okhttp3.Call
 import java.io.IOException
 
+// TODO Rewrite the possible outcome when I know what they should be
 sealed class Result<out A> {
     data class NetworkError(val error: IOException, val call: Call) : Result<Nothing>()
     data class NonOkError(val code: Int, val body: String) : Result<Nothing>()
