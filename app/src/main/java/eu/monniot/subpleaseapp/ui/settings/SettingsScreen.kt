@@ -30,6 +30,12 @@ fun SettingsScreen() {
         item {
             Category(name = "Deluge") {
                 TextPreference(
+                    label = "URL",
+                    dialogTitle = "Set the deluge url (including /json)",
+                    pref = preferences.string("deluge_host"),
+                )
+
+                TextPreference(
                     label = "Username",
                     dialogTitle = "Set the deluge username",
                     pref = preferences.string("deluge_username"),
