@@ -36,6 +36,7 @@ fun ShowsScreen(
     LazyColumn(modifier = Modifier.padding(top = 16.dp, bottom = 56.dp)) {
 
         items(schedule.toList()) { (day, shows) ->
+            // TODO Change color for the current day
             Text(
                 text = day,
                 modifier = Modifier.padding(16.dp),
@@ -45,6 +46,7 @@ fun ShowsScreen(
             shows.forEach { show ->
                 ShowItem(
                     showTitle = show.title,
+                    showTime = show.time,
                     imageUrl = show.imageUrl,
                     subscribed = show.subscribed,
                     onClick = { navigateShowDetail(show.page) },
@@ -56,44 +58,39 @@ fun ShowsScreen(
     }
 }
 
-// TODO Use ListItem and also add the time on second line. See how it behaves with very long title.
 @Composable
 private fun ShowItem(
     showTitle: String,
+    showTime: String,
     imageUrl: String,
     subscribed: Boolean,
     onClick: () -> Unit,
     onSubscribeToggle: () -> Unit,
 ) {
-    Row(modifier = Modifier
-        .clickable(onClickLabel = "More details") { onClick() }
-        .padding(horizontal = 16.dp)) {
-
-        CoilImage(
-            data = "https://subsplease.org${imageUrl}",
-            contentDescription = "",
-            fadeIn = true,
-            modifier = Modifier
-                .align(Alignment.CenterVertically)
-                .preferredSize(56.dp, 78.dp) // 225w/317h | 56dp/78dp
-                .clip(RoundedCornerShape(2.dp))
-        )
-
-        Text(
-            showTitle,
-            modifier = Modifier
-                .align(Alignment.CenterVertically)
-                .padding(16.dp)
-                .weight(1f),
-            style = MaterialTheme.typography.body1
-        )
-
-        SelectTopicButton(
-            modifier = Modifier.align(Alignment.CenterVertically),
-            selected = subscribed,
-            onClick = onSubscribeToggle
-        )
-    }
+    ListItem(
+        modifier = Modifier.clickable(onClickLabel = "More details") { onClick() },
+        icon = {
+            CoilImage(
+                // TODO We should probably inject the host in the DB records
+                // that we don't have to deal with it here (or if we change the source)
+                data = "https://subsplease.org${imageUrl}",
+                contentDescription = "${showTitle}'s icon",
+                fadeIn = true,
+                modifier = Modifier
+                    .preferredSize(56.dp, 78.dp) // 225w/317h | 56dp/78dp
+                    .clip(RoundedCornerShape(2.dp))
+            )
+        },
+        secondaryText = { Text("Available at $showTime") },
+        singleLineSecondaryText = true,
+        trailing = {
+            SelectTopicButton(
+                selected = subscribed,
+                onClick = onSubscribeToggle
+            )
+        },
+        text = { Text(showTitle) }
+    )
 }
 
 @Composable
@@ -139,6 +136,7 @@ fun ShowSubscribedPreview() {
         Surface {
             ShowItem(
                 showTitle = "Horimiya",
+                showTime = "08:00",
                 imageUrl = "/wp-content/uploads/2021/01/110336.jpg",
                 subscribed = true,
                 onClick = { },
@@ -154,6 +152,7 @@ fun ShowNotSubscribedPreview() {
         Surface {
             ShowItem(
                 showTitle = "Horimiya",
+                showTime = "08:00",
                 imageUrl = "/wp-content/uploads/2021/01/110336.jpg",
                 subscribed = false,
                 onClick = { },
@@ -169,6 +168,7 @@ fun ShowSubscribedLongNamePreview() {
         Surface {
             ShowItem(
                 showTitle = "Tatoeba Last Dungeon Mae no Mura no Shounen ga Joban no Machi de Kurasu Youna Monogatari",
+                showTime = "08:00",
                 imageUrl = "/wp-content/uploads/2021/01/106599.jpg",
                 subscribed = true,
                 onClick = { },
