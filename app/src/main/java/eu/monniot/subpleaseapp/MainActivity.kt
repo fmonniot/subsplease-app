@@ -10,12 +10,15 @@ import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.setContent
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.room.Room
 import eu.monniot.subpleaseapp.clients.deluge.DelugeClient
 import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
 import eu.monniot.subpleaseapp.data.AppDatabase
 import eu.monniot.subpleaseapp.data.ShowsStore
+import eu.monniot.subpleaseapp.ui.details.DetailsScreen
+import eu.monniot.subpleaseapp.ui.details.ShowViewModel
 import eu.monniot.subpleaseapp.ui.downloads.DownloadsScreen
 import eu.monniot.subpleaseapp.ui.settings.SettingsScreen
 import eu.monniot.subpleaseapp.ui.settings.openSharedPrefs
@@ -102,7 +105,7 @@ class MainActivity : AppCompatActivity() {
                                 val scheduleViewModel = ScheduleViewModel(store)
 
                                 ScheduleScreen(scheduleViewModel) { page ->
-                                    Log.d("MainActivity", "Navigating to slug $page")
+                                    navController.navigate("/details/$page")
                                 }
                             }
 
@@ -111,7 +114,7 @@ class MainActivity : AppCompatActivity() {
 
                                 SubscriptionsScreen(
                                     viewModel = subscriptionsViewModel,
-                                    navigateShowDetail = { /*TODO*/ })
+                                    navigateShowDetail = { page -> navController.navigate("/details/$page") })
                             }
                             composable(Screen.Downloads.route) {
                                 val context = AmbientContext.current
@@ -134,6 +137,20 @@ class MainActivity : AppCompatActivity() {
                             }
                             composable(Screen.Settings.route) {
                                 SettingsScreen()
+                            }
+
+                            composable(
+                                "/details/{page}",
+                                arguments = listOf(navArgument("userId") {
+                                    type = NavType.StringType
+                                })
+                            ) {
+                                // The null cast should be safe because arguments are required before hand
+                                val page = it.arguments?.getString("userId")!!
+                                val vm = ShowViewModel(store, page)
+                                DetailsScreen(viewModel = vm, backButtonPress = {
+                                    navController.popBackStack()
+                                })
                             }
                         }
                     }
