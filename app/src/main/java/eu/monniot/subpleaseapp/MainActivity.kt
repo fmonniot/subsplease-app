@@ -56,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         ).build()
 
         val store = ShowsStore(db.showDao(), api)
+        var first = true
 
         setContent {
             SubPleaseAppTheme {
@@ -111,11 +112,16 @@ class MainActivity : AppCompatActivity() {
 
                             composable(Screen.Subscriptions.route) {
                                 val subscriptionsViewModel = SubscriptionsViewModel(store)
+                                if(first){
+                                    navController.navigate("/details/wonder-egg-priority")
+                                    first = false
+                                }
 
                                 SubscriptionsScreen(
                                     viewModel = subscriptionsViewModel,
                                     navigateShowDetail = { page -> navController.navigate("/details/$page") })
                             }
+
                             composable(Screen.Downloads.route) {
                                 val context = AmbientContext.current
                                 val preferences = openSharedPrefs(context)
@@ -135,18 +141,19 @@ class MainActivity : AppCompatActivity() {
                                 }
 
                             }
+
                             composable(Screen.Settings.route) {
                                 SettingsScreen()
                             }
 
                             composable(
                                 "/details/{page}",
-                                arguments = listOf(navArgument("userId") {
+                                arguments = listOf(navArgument("page") {
                                     type = NavType.StringType
                                 })
                             ) {
                                 // The null cast should be safe because arguments are required before hand
-                                val page = it.arguments?.getString("userId")!!
+                                val page = it.arguments?.getString("page")!!
                                 val vm = ShowViewModel(store, page)
                                 DetailsScreen(viewModel = vm, backButtonPress = {
                                     navController.popBackStack()
