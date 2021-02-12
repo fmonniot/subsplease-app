@@ -14,6 +14,7 @@ data class Show(
     @ColumnInfo(name = "release_day") val releaseDay: String,
     val season: String, // 21Q1 for winter 2021; 22Q3 for autumn 2022
     val synopsis: String? = null,
+    val sid: Int? = null,
     val subscribed: Boolean = false,
 )
 

@@ -1,9 +1,12 @@
 package eu.monniot.subpleaseapp.data
 
+import android.content.Context
 import androidx.room.*
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import eu.monniot.subpleaseapp.clients.subsplease.DownloadItem
 import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
-import eu.monniot.subpleaseapp.clients.subsplease.fetchSynopsis
+import eu.monniot.subpleaseapp.clients.subsplease.fetchDetails
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,13 +41,32 @@ interface ShowDao {
     @Query("UPDATE show SET subscribed = :subscribed WHERE page = :page")
     suspend fun updateShowSubscription(page: String, subscribed: Boolean)
 
-    @Query("UPDATE show SET synopsis = :synopsis WHERE page = :page")
-    suspend fun updateShowSynopsis(page: String, synopsis: String)
+    @Query("UPDATE show SET synopsis = :synopsis, sid = :sid WHERE page = :page")
+    suspend fun updateShowSynopsis(page: String, synopsis: String, sid: Int)
 }
 
-@Database(entities = [Show::class], version = 1)
+@Database(entities = [Show::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun showDao(): ShowDao
+
+    companion object {
+
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE show ADD COLUMN sid INTEGER")
+            }
+        }
+
+        fun build(applicationContext: Context): AppDatabase {
+            return Room.databaseBuilder(
+                applicationContext,
+                AppDatabase::class.java, "app-database"
+            )
+                .addMigrations(MIGRATION_1_2)
+                .build()
+        }
+
+    }
 }
 
 class ShowsStore(
@@ -67,32 +89,30 @@ class ShowsStore(
         }
     }
 
-    suspend fun updateSynopsis(page: String): String {
-        val result = okHttpClient.fetchSynopsis(page)
+    suspend fun updateDetails(page: String): Pair<String, Int> {
+        val details = okHttpClient.fetchDetails(page)
 
         // TODO Need to change the data model to handle list of strings (list of paragraphs)
-        val synopsis: String = result.joinToString("<br>")
+        // Maybe using a TypeConverter to use <br> as an internal separator ?
+        val synopsis: String = details.synopsis.joinToString("<br>")
 
-        showDao.updateShowSynopsis(page, synopsis)
+        showDao.updateShowSynopsis(page, synopsis, details.sid)
 
-        return synopsis
+        return Pair(synopsis, details.sid)
     }
 
-    suspend fun listDownloads(page: String): List<DownloadItem> {
+    suspend fun listDownloads(sid: Int): List<DownloadItem> {
         val timezone = ZoneId.systemDefault()
-        // TODO Get the sid from somewhere. Probably fetchSynopsis.
-        val response = api.downloads(timezone, 1)
+        val response = api.downloads(timezone, sid)
 
         return response.episode.values.toList()
     }
 
     suspend fun subscribeToShow(page: String) {
-        println("subscribe to $page")
         showDao.updateShowSubscription(page, true)
     }
 
     suspend fun unsubscribeToShow(page: String) {
-        println("unsubscribe to $page")
         showDao.updateShowSubscription(page, false)
     }
 
@@ -108,8 +128,6 @@ class ShowsStore(
         val timezone = ZoneId.systemDefault()
 
         return flow {
-
-            println("ShowsStore#schedule")
 
             // We need access to what is in the db for the update logic.
             // Emit it while we are at it

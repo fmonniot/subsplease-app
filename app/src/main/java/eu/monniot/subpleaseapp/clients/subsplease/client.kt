@@ -113,7 +113,9 @@ interface SubsPleaseApi {
     }
 }
 
-suspend fun OkHttpClient.fetchSynopsis(page: String): List<String> {
+data class ShowDetails(val synopsis: List<String>, val sid: Int)
+
+suspend fun OkHttpClient.fetchDetails(page: String): ShowDetails {
 
     val request = Request.Builder()
         .url("https://subsplease.org/shows/${page}")
@@ -122,12 +124,13 @@ suspend fun OkHttpClient.fetchSynopsis(page: String): List<String> {
 
     val text = response.body?.use(ResponseBody::string)
 
-    return parseSynopsis(text ?: "")
+    return parseDetails(text ?: "")
 }
 
-internal fun parseSynopsis(html: String): List<String> {
+internal fun parseDetails(html: String): ShowDetails {
     val doc = Jsoup.parse(html)
-    val synopsis = doc.select(".series-syn p")
+    val synopsis = doc.select(".series-syn p").toList().map { it.text() }
+    val sid = doc.select("table#show-release-table").first().attr("104").toInt()
 
-    return synopsis.toList().map { it.text() }
+    return ShowDetails(synopsis, sid)
 }

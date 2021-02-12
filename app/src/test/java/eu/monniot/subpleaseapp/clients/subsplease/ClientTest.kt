@@ -82,7 +82,7 @@ class ClientTest {
     fun parsingShowDetails() {
         val txt = javaClass.classLoader?.getResource("subsplease/shows/hiromiya.html")?.readText()
 
-        val synopsis = parseSynopsis(txt!!)
+        val synopsis = parseDetails(txt!!)
 
         assertEquals(
             listOf(

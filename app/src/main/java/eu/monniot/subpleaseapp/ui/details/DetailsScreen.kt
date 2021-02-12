@@ -29,7 +29,8 @@ import eu.monniot.subpleaseapp.clients.subsplease.DownloadItem
 import eu.monniot.subpleaseapp.data.Show
 import eu.monniot.subpleaseapp.data.ShowsStore
 import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
-import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.math.max
 import kotlin.math.min
 
@@ -53,6 +54,8 @@ data class DetailsState(
     }
 }
 
+// TODO Once we have the interaction between stateless and stateful components,
+// TODO decide if we want to keep the ViewModel or not.
 class ShowViewModel(
     private val showsStore: ShowsStore,
     private val showPage: String
@@ -61,11 +64,11 @@ class ShowViewModel(
     suspend fun load(): Show =
         showsStore.getShow(showPage)
 
-    suspend fun downloads(): List<DownloadItem> =
-        showsStore.listDownloads(showPage)
+    suspend fun downloads(sid: Int): List<DownloadItem> =
+        showsStore.listDownloads(sid)
 
-    suspend fun fetchAndSaveSynopsis(): String =
-        showsStore.updateSynopsis(showPage)
+    suspend fun fetchAndSaveSynopsis(): Pair<String, Int> =
+        showsStore.updateDetails(showPage)
 
 }
 
@@ -81,25 +84,25 @@ fun DetailsScreen(
     val state by produceState(initialValue = DetailsState.default(), viewModel) {
 
         val show = viewModel.load()
-        val loadingSynopsis = show.synopsis == null
-        value = value.copy(show = show, loadingShow = false, loadingSynopsis = loadingSynopsis)
+        value =
+            value.copy(show = show, loadingShow = false, loadingSynopsis = show.synopsis == null)
 
-        if (loadingSynopsis) {
-            launch {
-                val synopsis = viewModel.fetchAndSaveSynopsis()
+        // If we don't have the synopsis, update the show details
+        if (show.synopsis == null) {
+            val (synopsis, sid) = viewModel.fetchAndSaveSynopsis()
 
-                value = value.copy(
-                    loadingSynopsis = false,
-                    show = value.show?.copy(synopsis = synopsis)
-                )
-            }
+            value = value.copy(
+                loadingSynopsis = false,
+                show = value.show?.copy(synopsis = synopsis, sid = sid)
+            )
         }
 
-        launch {
-            val list = viewModel.downloads()
-
+        // the null check is only for Kotlin's sake. The previous call should
+        // assure us that sid will be present.
+        val sid = value.show?.sid
+        if (sid != null) {
+            val list = viewModel.downloads(sid)
             value = value.copy(loadingDownloads = false, downloads = list)
-
         }
     }
 
@@ -195,7 +198,6 @@ fun Body(state: DetailsState, scroll: ScrollState) {
                     Spacer(Modifier.preferredHeight(ImageOverlap))
                     Spacer(Modifier.preferredHeight(TitleHeight))
 
-                    // Actual content
                     Spacer(Modifier.preferredHeight(16.dp))
                     Text(
                         text = "Synopsis",
@@ -204,12 +206,21 @@ fun Body(state: DetailsState, scroll: ScrollState) {
                         modifier = HzPadding
                     )
                     Spacer(Modifier.preferredHeight(4.dp))
-                    Text(
-                        text = "This is the story of Ai, an introverted girl whose fate is forever changed when she acquires a mysterious “Wonder Egg” from a deserted arcade. That night, her dreams blend into reality, and as other girls obtain their own Wonder Eggs, Ai discovers new friends—and the magic within herself.",
-                        style = MaterialTheme.typography.body1,
-                        //color = JetsnackTheme.colors.textHelp,
-                        modifier = HzPadding
-                    )
+
+                    // Actual content
+                    val synopsis = state.show?.synopsis
+                    if (synopsis == null) {
+                        // TODO Loading component
+                    } else {
+                        synopsis.split("<br>").forEach { paragraph ->
+                            Text(
+                                text = paragraph,
+                                style = MaterialTheme.typography.body1,
+                                //color = JetsnackTheme.colors.textHelp,
+                                modifier = HzPadding
+                            )
+                        }
+                    }
 
                     Spacer(Modifier.preferredHeight(40.dp))
                     Text(
@@ -219,26 +230,32 @@ fun Body(state: DetailsState, scroll: ScrollState) {
                         modifier = HzPadding
                     )
                     Spacer(Modifier.preferredHeight(4.dp))
-                    Box(Modifier.fillMaxWidth()) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                    }
 
-                    (1..5).forEach { episode ->
-                        ListItem(
-                            text = { Text("Episode 0$episode") },
-                            secondaryText = {
-                                Row {
-                                    Text("Jan $episode, 2021")
-                                    if (episode == 1) {
-                                        Text(
-                                            "New",
-                                            style = MaterialTheme.typography.overline,
-                                            color = Color.Green
-                                        )
+                    if (state.loadingDownloads) {
+                        Box(Modifier.fillMaxWidth()) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        }
+                    } else {
+                        val today =
+                            ZonedDateTime.now().format(DateTimeFormatter.ofPattern("MM/dd/yy"))
+                        state.downloads.forEach { download ->
+                            download.episode
+                            ListItem(
+                                text = { Text(download.episode) },
+                                secondaryText = {
+                                    Row {
+                                        Text(download.releaseDate)
+                                        if (download.releaseDate == today) {
+                                            Text(
+                                                "New",
+                                                style = MaterialTheme.typography.overline,
+                                                color = Color.Green
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
 
                     // TODO Remove once the bottom bar has been removed from this screen

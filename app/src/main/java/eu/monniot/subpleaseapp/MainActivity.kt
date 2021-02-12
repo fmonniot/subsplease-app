@@ -12,7 +12,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
-import androidx.room.Room
 import eu.monniot.subpleaseapp.clients.deluge.DelugeClient
 import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
 import eu.monniot.subpleaseapp.data.AppDatabase
@@ -50,10 +49,7 @@ class MainActivity : AppCompatActivity() {
             })
             .build()
         val api = SubsPleaseApi.build(http)
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "app-database"
-        ).build()
+        val db = AppDatabase.build(applicationContext)
 
         val store = ShowsStore(db.showDao(), api, http)
         var first = true
