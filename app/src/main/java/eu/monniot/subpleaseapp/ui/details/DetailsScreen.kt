@@ -8,6 +8,8 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -23,10 +25,11 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import dev.chrisbanes.accompanist.coil.CoilImage
-import eu.monniot.subpleaseapp.clients.deluge.DownloadItem
+import eu.monniot.subpleaseapp.clients.subsplease.DownloadItem
 import eu.monniot.subpleaseapp.data.Show
 import eu.monniot.subpleaseapp.data.ShowsStore
 import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
+import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
 
@@ -55,11 +58,14 @@ class ShowViewModel(
     private val showPage: String
 ) : ViewModel() {
 
-    suspend fun load(): Show = TODO()
+    suspend fun load(): Show =
+        showsStore.getShow(showPage)
 
-    suspend fun downloads(): List<DownloadItem> = TODO()
+    suspend fun downloads(): List<DownloadItem> =
+        showsStore.listDownloads(showPage)
 
-    suspend fun fetchAndSaveSynopsis(): String = TODO()
+    suspend fun fetchAndSaveSynopsis(): String =
+        showsStore.updateSynopsis(showPage)
 
 }
 
@@ -72,7 +78,6 @@ fun DetailsScreen(
     backButtonPress: () -> Unit, // TODO Should it be included in the ViewModel ?
 ) {
 
-    /*
     val state by produceState(initialValue = DetailsState.default(), viewModel) {
 
         val show = viewModel.load()
@@ -97,9 +102,8 @@ fun DetailsScreen(
 
         }
     }
-     */
 
-    DetailsScreen(DetailsState.default(), backButtonPress)
+    DetailsScreen(state, backButtonPress)
 }
 
 private val TitleHeight = 128.dp

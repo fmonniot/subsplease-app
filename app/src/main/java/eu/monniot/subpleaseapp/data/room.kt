@@ -1,12 +1,15 @@
 package eu.monniot.subpleaseapp.data
 
 import androidx.room.*
+import eu.monniot.subpleaseapp.clients.subsplease.DownloadItem
 import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
+import eu.monniot.subpleaseapp.clients.subsplease.fetchSynopsis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoField
@@ -25,13 +28,18 @@ interface ShowDao {
     @Query("SELECT * FROM show WHERE season = :season")
     suspend fun findAllBySeason(season: String): List<Show>
 
+    @Query("SELECT * FROM show WHERE page = :page")
+    suspend fun findShowByPage(page: String): Show?
+
     // replace because we assume new data has more chance to be true
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertShows(users: List<Show>)
 
     @Query("UPDATE show SET subscribed = :subscribed WHERE page = :page")
-    suspend fun updateShow(page: String, subscribed: Boolean)
+    suspend fun updateShowSubscription(page: String, subscribed: Boolean)
 
+    @Query("UPDATE show SET synopsis = :synopsis WHERE page = :page")
+    suspend fun updateShowSynopsis(page: String, synopsis: String)
 }
 
 @Database(entities = [Show::class], version = 1)
@@ -39,20 +47,53 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun showDao(): ShowDao
 }
 
-class ShowsStore(private val showDao: ShowDao, private val api: SubsPleaseApi) {
+class ShowsStore(
+    private val showDao: ShowDao,
+    private val api: SubsPleaseApi,
+    private val okHttpClient: OkHttpClient
+) {
 
     private var refreshingJob: Job? = null
 
     private val scope = CoroutineScope(Dispatchers.Main)
 
+    suspend fun getShow(page: String): Show {
+        val show = showDao.findShowByPage(page)
+
+        if (show == null) {
+            throw TODO("What to do here ?")
+        } else {
+            return show
+        }
+    }
+
+    suspend fun updateSynopsis(page: String): String {
+        val result = okHttpClient.fetchSynopsis(page)
+
+        // TODO Need to change the data model to handle list of strings (list of paragraphs)
+        val synopsis: String = result.joinToString("<br>")
+
+        showDao.updateShowSynopsis(page, synopsis)
+
+        return synopsis
+    }
+
+    suspend fun listDownloads(page: String): List<DownloadItem> {
+        val timezone = ZoneId.systemDefault()
+        // TODO Get the sid from somewhere. Probably fetchSynopsis.
+        val response = api.downloads(timezone, 1)
+
+        return response.episode.values.toList()
+    }
+
     suspend fun subscribeToShow(page: String) {
         println("subscribe to $page")
-        showDao.updateShow(page, true)
+        showDao.updateShowSubscription(page, true)
     }
 
     suspend fun unsubscribeToShow(page: String) {
         println("unsubscribe to $page")
-        showDao.updateShow(page, false)
+        showDao.updateShowSubscription(page, false)
     }
 
     suspend fun subscriptions(): Map<String, List<Show>> {
@@ -64,7 +105,6 @@ class ShowsStore(private val showDao: ShowDao, private val api: SubsPleaseApi) {
     fun schedule(forceRefresh: Boolean = false): Flow<Map<String, List<Show>>> {
 
         val season = currentSeason()
-
         val timezone = ZoneId.systemDefault()
 
         return flow {

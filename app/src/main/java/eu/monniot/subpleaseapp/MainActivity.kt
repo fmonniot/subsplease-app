@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
             AppDatabase::class.java, "app-database"
         ).build()
 
-        val store = ShowsStore(db.showDao(), api)
+        val store = ShowsStore(db.showDao(), api, http)
         var first = true
 
         setContent {
