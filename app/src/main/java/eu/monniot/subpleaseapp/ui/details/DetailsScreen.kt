@@ -437,7 +437,3 @@ fun DetailsPreview(@PreviewParameter(StateProvider::class) state: DetailsState) 
         }
     }
 }
-
-// TODO fun LoadedShow (synopsis loading + downloads loading)
-// TODO fun LoadedSynopsis (synopsis loaded + downloads loading)
-// TODO fun FullyLoaded (synopsis loaded + downloads loaded)
