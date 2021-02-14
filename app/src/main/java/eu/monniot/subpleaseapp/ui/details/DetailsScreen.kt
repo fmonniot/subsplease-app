@@ -21,6 +21,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.AmbientDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -34,6 +36,8 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.max
 import kotlin.math.min
 
+// TODO Use a sealed hierarchy instead, will probably make it easier to
+// pattern match where the loading spinner should be
 data class DetailsState(
     val show: Show?,
     val loadingShow: Boolean,
@@ -81,6 +85,8 @@ fun DetailsScreen(
     backButtonPress: () -> Unit, // TODO Should it be included in the ViewModel ?
 ) {
 
+    // TODO Manage error cases ? We can assume that the page will exists, because otherwise
+    // nothing would lead to this screen. But fetching the synopsis or download can fail.
     val state by produceState(initialValue = DetailsState.default(), viewModel) {
 
         val show = viewModel.load()
@@ -129,7 +135,9 @@ fun DetailsScreen(
         val scroll = rememberScrollState()
 
         Header()
-        Body(state, scroll)
+        if (!state.loadingShow) {
+            Body(state, scroll)
+        }
         Title(state, scroll.value)
         Image(state, scroll.value)
         Back(backButtonPress)
@@ -210,8 +218,11 @@ fun Body(state: DetailsState, scroll: ScrollState) {
                     // Actual content
                     val synopsis = state.show?.synopsis
                     if (synopsis == null) {
-                        // TODO Loading component
+                        Box(Modifier.fillMaxWidth()) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        }
                     } else {
+                        // TODO Find a way to include some padding between paragraphs
                         synopsis.split("<br>").forEach { paragraph ->
                             Text(
                                 text = paragraph,
@@ -222,39 +233,43 @@ fun Body(state: DetailsState, scroll: ScrollState) {
                         }
                     }
 
-                    Spacer(Modifier.preferredHeight(40.dp))
-                    Text(
-                        text = "Downloads",
-                        style = MaterialTheme.typography.overline,
-                        //color = JetsnackTheme.colors.textHelp,
-                        modifier = HzPadding
-                    )
-                    Spacer(Modifier.preferredHeight(4.dp))
+                    // When we are done loading the synopsis, display the downloads
+                    // No need to display them before that, as it's a sequential operation
+                    if (!state.loadingSynopsis) {
+                        Spacer(Modifier.preferredHeight(40.dp))
+                        Text(
+                            text = "Downloads",
+                            style = MaterialTheme.typography.overline,
+                            //color = JetsnackTheme.colors.textHelp,
+                            modifier = HzPadding
+                        )
+                        Spacer(Modifier.preferredHeight(4.dp))
 
-                    if (state.loadingDownloads) {
-                        Box(Modifier.fillMaxWidth()) {
-                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                        }
-                    } else {
-                        val today =
-                            ZonedDateTime.now().format(DateTimeFormatter.ofPattern("MM/dd/yy"))
-                        state.downloads.forEach { download ->
-                            download.episode
-                            ListItem(
-                                text = { Text(download.episode) },
-                                secondaryText = {
-                                    Row {
-                                        Text(download.releaseDate)
-                                        if (download.releaseDate == today) {
-                                            Text(
-                                                "New",
-                                                style = MaterialTheme.typography.overline,
-                                                color = Color.Green
-                                            )
+                        if (state.loadingDownloads) {
+                            Box(Modifier.fillMaxWidth()) {
+                                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                            }
+                        } else {
+                            val today =
+                                ZonedDateTime.now().format(DateTimeFormatter.ofPattern("MM/dd/yy"))
+                            state.downloads.forEach { download ->
+                                download.episode
+                                ListItem(
+                                    text = { Text(download.episode) },
+                                    secondaryText = {
+                                        Row {
+                                            Text(download.releaseDate)
+                                            if (download.releaseDate == today) {
+                                                Text(
+                                                    "New",
+                                                    style = MaterialTheme.typography.overline,
+                                                    color = Color.Green
+                                                )
+                                            }
                                         }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
 
@@ -294,12 +309,13 @@ fun Title(state: DetailsState, scroll: Float) {
             .padding(end = endPadding)
             .border(1.dp, Color.Red)
     ) {
-        Text(
-            text = "Unravel by TK from from",
-            style = MaterialTheme.typography.h4,
-            //color = JetsnackTheme.colors.textSecondary,
-            modifier = HzPadding
-        )
+        if (state.show?.title != null)
+            Text(
+                text = state.show.title,
+                style = MaterialTheme.typography.h4,
+                //color = JetsnackTheme.colors.textSecondary,
+                modifier = HzPadding
+            )
     }
 }
 
@@ -314,11 +330,29 @@ fun Image(state: DetailsState, scroll: Float) {
         collapseFraction = collapseFraction,
         modifier = HzPadding
     ) {
-        CoilImage(
-            data = "https://subsplease.org/wp-content/uploads/2021/01/110750.jpg",
-            contentDescription = null,
-            contentScale = ContentScale.FillHeight
-        )
+        if (state.show?.imageUrl == null) {
+            // Not sure if this is necessary. Most of the time this load is so fast that users
+            // won't see it. We could save a flicker or two by removing this loading component.
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, Color.Red)
+            ) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+        } else {
+            // TODO fix the image import to include the domain
+            val url =
+                if (state.show.imageUrl.startsWith("/")) {
+                    "https://subsplease.org${state.show.imageUrl}"
+                } else state.show.imageUrl
+
+            CoilImage(
+                data = url,
+                contentDescription = null,
+                contentScale = ContentScale.FillHeight
+            )
+        }
     }
 }
 
@@ -361,10 +395,42 @@ private fun CollapsingImageLayout(
 // Previews
 //
 
-@Preview
+class StateProvider : PreviewParameterProvider<DetailsState> {
+
+    // Shows
+    private val baseShow = Show(
+        "page",
+        "08:00",
+        "The Show",
+        "http://example.org/image.jpg",
+        "Thursday",
+        "21Q1"
+    )
+    private val showWithSynopsis = baseShow.copy(
+        synopsis = "A secret life is the one thing they have in common. At school, Hori is a prim and perfect social butterfly, but the truth is she's a brash homebody. Meanwhile, under a gloomy facade, Miyamura hides a gentle heart, along with piercings and tattoos. In a chance meeting, they both reveal a side they've never shown. Could this blossom into something new?<br>Spoilers: yes it does.",
+        sid = 104
+    )
+
+    // States
+    private val default = DetailsState.default()
+    private val loadingSynopsis = default.copy(
+        show = baseShow,
+        loadingShow = false
+    )
+    private val loadingDownloads = loadingSynopsis.copy(
+        show = showWithSynopsis,
+        loadingSynopsis = false
+    )
+    // private val allLoaded = loadingDownloads.copy(loadingDownloads = false, downloads = ???)
+
+    // Provided values
+    override val values: Sequence<DetailsState> =
+        sequenceOf(default, loadingSynopsis, loadingDownloads)
+}
+
+@Preview(showBackground = true)
 @Composable
-fun LoadingShow() {
-    val state = DetailsState.default()
+fun DetailsPreview(@PreviewParameter(StateProvider::class) state: DetailsState) {
     SubPleaseAppTheme {
         Surface {
             DetailsScreen(state, backButtonPress = { })
