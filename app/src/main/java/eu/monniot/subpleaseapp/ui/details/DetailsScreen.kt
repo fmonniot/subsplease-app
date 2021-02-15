@@ -71,7 +71,7 @@ class ShowViewModel(
     suspend fun downloads(sid: Int): List<DownloadItem> =
         showsStore.listDownloads(sid)
 
-    suspend fun fetchAndSaveSynopsis(): Pair<String, Int> =
+    suspend fun fetchAndSaveSynopsis(): Pair<List<String>, Int> =
         showsStore.updateDetails(showPage)
 
 }
@@ -223,7 +223,7 @@ fun Body(state: DetailsState, scroll: ScrollState) {
                         }
                     } else {
                         // TODO Find a way to include some padding between paragraphs
-                        synopsis.split("<br>").forEach { paragraph ->
+                        synopsis.forEach { paragraph ->
                             Text(
                                 text = paragraph,
                                 style = MaterialTheme.typography.body1,
@@ -407,7 +407,10 @@ class StateProvider : PreviewParameterProvider<DetailsState> {
         "21Q1"
     )
     private val showWithSynopsis = baseShow.copy(
-        synopsis = "A secret life is the one thing they have in common. At school, Hori is a prim and perfect social butterfly, but the truth is she's a brash homebody. Meanwhile, under a gloomy facade, Miyamura hides a gentle heart, along with piercings and tattoos. In a chance meeting, they both reveal a side they've never shown. Could this blossom into something new?<br>Spoilers: yes it does.",
+        synopsis = listOf(
+            "A secret life is the one thing they have in common. At school, Hori is a prim and perfect social butterfly, but the truth is she's a brash homebody. Meanwhile, under a gloomy facade, Miyamura hides a gentle heart, along with piercings and tattoos. In a chance meeting, they both reveal a side they've never shown. Could this blossom into something new?",
+            "Spoilers: yes it does."
+        ),
         sid = 104
     )
 

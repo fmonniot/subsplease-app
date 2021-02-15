@@ -1,11 +1,8 @@
 package eu.monniot.subpleaseapp.data
 
 
-import android.content.Context
 import androidx.compose.runtime.Immutable
 import androidx.room.*
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.flow.Flow
 
 
@@ -18,7 +15,7 @@ data class Show(
     @ColumnInfo(name = "image_url") val imageUrl: String,
     @ColumnInfo(name = "release_day") val releaseDay: String,
     val season: String, // 21Q1 for winter 2021; 22Q3 for autumn 2022
-    val synopsis: String? = null,
+    val synopsis: List<String>? = null,
     val sid: Int? = null,
     val subscribed: Boolean = false,
 )
@@ -45,30 +42,25 @@ interface ShowDao {
     @Query("UPDATE show SET subscribed = :subscribed WHERE page = :page")
     suspend fun updateShowSubscription(page: String, subscribed: Boolean)
 
+    // Can't use a List<String> here because room will not call the type converter but will
+    // try to inject the values individually…
     @Query("UPDATE show SET synopsis = :synopsis, sid = :sid WHERE page = :page")
     suspend fun updateShowSynopsis(page: String, synopsis: String, sid: Int)
 }
 
-@Database(entities = [Show::class], version = 2)
-abstract class AppDatabase : RoomDatabase() {
-    abstract fun showDao(): ShowDao
+/**
+ * Store List<String> as a String in our database. We are using the <br> delimiter
+ * to know when a String start and end. We don't expect to store HTML values so it
+ * _should_ be a safe value.
+ */
+class StringListConverters {
+    @TypeConverter
+    fun fromList(values : List<String>?) = if (values != null) join(values) else null
+
+    @TypeConverter
+    fun toList(value: String?) = value?.split("<br>")
 
     companion object {
-
-        private val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE show ADD COLUMN sid INTEGER")
-            }
-        }
-
-        fun build(applicationContext: Context): AppDatabase {
-            return Room.databaseBuilder(
-                applicationContext,
-                AppDatabase::class.java, "app-database"
-            )
-                .addMigrations(MIGRATION_1_2)
-                .build()
-        }
-
+        fun join(values: List<String>) = values.joinToString("<br>")
     }
 }

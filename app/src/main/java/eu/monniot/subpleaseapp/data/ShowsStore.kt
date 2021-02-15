@@ -38,16 +38,14 @@ class ShowsStore(
         }
     }
 
-    suspend fun updateDetails(page: String): Pair<String, Int> {
+    suspend fun updateDetails(page: String): Pair<List<String>, Int> {
+        // TODO Perhaps make that an interface/function to ease testing ?
         val details = okHttpClient.fetchDetails(page)
 
-        // TODO Need to change the data model to handle list of strings (list of paragraphs)
-        // Maybe using a TypeConverter to use <br> as an internal separator ?
-        val synopsis: String = details.synopsis.joinToString("<br>")
+        // Join manually because room will infer something else for lists
+        showDao.updateShowSynopsis(page, StringListConverters.join(details.synopsis), details.sid)
 
-        showDao.updateShowSynopsis(page, synopsis, details.sid)
-
-        return Pair(synopsis, details.sid)
+        return Pair(details.synopsis, details.sid)
     }
 
     suspend fun listDownloads(sid: Int): List<DownloadItem> {
