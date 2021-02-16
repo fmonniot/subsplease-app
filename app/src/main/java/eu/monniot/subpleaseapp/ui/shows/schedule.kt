@@ -9,12 +9,19 @@ import eu.monniot.subpleaseapp.data.Show
 import eu.monniot.subpleaseapp.data.ShowsStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
+import java.time.format.TextStyle
+import java.util.*
 
 
 class ScheduleViewModel(private val showsStore: ShowsStore): ViewModel() {
 
     val schedule: Flow<Map<String, List<Show>>>
         get() = showsStore.schedule()
+
+    val today: String by lazy {
+        ZonedDateTime.now().dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    }
 
     fun toggleShowSubscription(show: Show) {
         viewModelScope.launch {
@@ -43,6 +50,7 @@ fun ScheduleScreen(
     ShowsScreen(
         navigateShowDetail = navigateShowDetail,
         schedule = schedule,
+        today = viewModel.today,
         toggleShowSubscription = viewModel::toggleShowSubscription
     )
 }

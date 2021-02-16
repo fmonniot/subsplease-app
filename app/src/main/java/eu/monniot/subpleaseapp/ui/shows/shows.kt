@@ -1,7 +1,6 @@
 package eu.monniot.subpleaseapp.ui.shows
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.preferredSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,17 +28,19 @@ import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
 fun ShowsScreen(
     navigateShowDetail: (String) -> Unit,
     toggleShowSubscription: (Show) -> Unit,
+    today: String,
     schedule: Map<String, List<Show>>,
 ) {
 
     LazyColumn(modifier = Modifier.padding(top = 16.dp, bottom = 56.dp)) {
 
         items(schedule.toList()) { (day, shows) ->
-            // TODO Change color for the current day
+            val titleColor = if(today == day) { MaterialTheme.colors.primary } else { MaterialTheme.colors.onSurface }
             Text(
                 text = day,
                 modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.subtitle1
+                style = MaterialTheme.typography.subtitle1,
+                color = titleColor
             )
 
             shows.forEach { show ->
@@ -267,7 +267,7 @@ fun ShowsPreview() {
 
     SubPleaseAppTheme {
         Surface {
-            ShowsScreen({}, {}, schedule)
+            ShowsScreen({}, {}, "Monday", schedule)
         }
     }
 }

@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import eu.monniot.subpleaseapp.data.Show
 import eu.monniot.subpleaseapp.data.ShowsStore
 import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
+import java.time.format.TextStyle
+import java.util.*
 
 
 class SubscriptionsViewModel(private val showsStore: ShowsStore): ViewModel() {
@@ -14,6 +17,10 @@ class SubscriptionsViewModel(private val showsStore: ShowsStore): ViewModel() {
 
     val state: State<Map<String, List<Show>>>
         get() = _state
+
+    val today: String by lazy {
+        ZonedDateTime.now().dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())
+    }
 
     init {
         viewModelScope.launch {
@@ -60,6 +67,7 @@ fun SubscriptionsScreen(
     ShowsScreen(
         navigateShowDetail = navigateShowDetail,
         schedule = schedule,
+        today = viewModel.today,
         toggleShowSubscription = viewModel::toggleShowSubscription
     )
 }
