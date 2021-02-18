@@ -52,7 +52,6 @@ class MainActivity : AppCompatActivity() {
         val db = AppDatabase.build(applicationContext)
 
         val store = ShowsStore(db.showDao(), api, http)
-        var first = true
 
         setContent {
             SubPleaseAppTheme {
@@ -108,10 +107,6 @@ class MainActivity : AppCompatActivity() {
 
                             composable(Screen.Subscriptions.route) {
                                 val subscriptionsViewModel = SubscriptionsViewModel(store)
-                                if(first){
-                                    navController.navigate("/details/wonder-egg-priority")
-                                    first = false
-                                }
 
                                 SubscriptionsScreen(
                                     viewModel = subscriptionsViewModel,
