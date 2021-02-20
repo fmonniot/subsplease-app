@@ -35,7 +35,7 @@ interface ShowDao {
     suspend fun findAllBySeason(season: String): List<Show>
 
     @Query("SELECT * FROM show WHERE page = :page")
-    suspend fun findShowByPage(page: String): Show?
+    suspend fun findShowByPage(page: String): Show
 
     // replace because we assume new data has more chance to be true
     @Insert(onConflict = OnConflictStrategy.REPLACE)

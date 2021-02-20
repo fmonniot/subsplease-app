@@ -8,7 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,11 +27,14 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import dev.chrisbanes.accompanist.coil.CoilImage
-import eu.monniot.subpleaseapp.clients.subsplease.DownloadItem
 import eu.monniot.subpleaseapp.data.Show
 import eu.monniot.subpleaseapp.data.ShowsStore
 import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
 import java.time.ZonedDateTime
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import java.time.format.DateTimeFormatter
 import kotlin.math.max
 import kotlin.math.min
@@ -65,14 +68,26 @@ class ShowViewModel(
     private val showPage: String
 ) : ViewModel() {
 
-    suspend fun load(): Show =
-        showsStore.getShow(showPage)
+    // TODO Manage error cases ? We can assume that the page will exists, because otherwise
+    // nothing would lead to this screen. But fetching the synopsis or download can fail.
+    val state: Flow<DetailsState>
+        get() {
+            return flow {
+                val show = showsStore.getShow(showPage)
+                val state = DetailsState.default()
+                    .copy(show = show, loadingShow = false, loadingSynopsis = show.synopsis == null)
+                emit(state)
 
-    suspend fun downloads(sid: Int): List<DownloadItem> =
-        showsStore.listDownloads(sid)
-
-    suspend fun fetchAndSaveSynopsis(): Pair<List<String>, Int> =
-        showsStore.updateDetails(showPage)
+                val next = episodeStore.episodes(showPage).map { episodes ->
+                    if (episodes.isEmpty()) {
+                        state
+                    } else {
+                        state.copy(loadingDownloads = false, episodes = episodes)
+                    }
+                }
+                emitAll(next)
+            }
+        }
 
 }
 
@@ -84,33 +99,7 @@ fun DetailsScreen(
     viewModel: ShowViewModel,
     backButtonPress: () -> Unit, // TODO Should it be included in the ViewModel ?
 ) {
-
-    // TODO Manage error cases ? We can assume that the page will exists, because otherwise
-    // nothing would lead to this screen. But fetching the synopsis or download can fail.
-    val state by produceState(initialValue = DetailsState.default(), viewModel) {
-
-        val show = viewModel.load()
-        value =
-            value.copy(show = show, loadingShow = false, loadingSynopsis = show.synopsis == null)
-
-        // If we don't have the synopsis, update the show details
-        if (show.synopsis == null) {
-            val (synopsis, sid) = viewModel.fetchAndSaveSynopsis()
-
-            value = value.copy(
-                loadingSynopsis = false,
-                show = value.show?.copy(synopsis = synopsis, sid = sid)
-            )
-        }
-
-        // the null check is only for Kotlin's sake. The previous call should
-        // assure us that sid will be present.
-        val sid = value.show?.sid
-        if (sid != null) {
-            val list = viewModel.downloads(sid)
-            value = value.copy(loadingDownloads = false, downloads = list)
-        }
-    }
+    val state by viewModel.state.collectAsState(initial = DetailsState.default())
 
     DetailsScreen(state, backButtonPress)
 }

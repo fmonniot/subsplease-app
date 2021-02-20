@@ -1,6 +1,5 @@
 package eu.monniot.subpleaseapp.data
 
-import eu.monniot.subpleaseapp.clients.subsplease.DownloadItem
 import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
 import eu.monniot.subpleaseapp.clients.subsplease.fetchDetails
 import kotlinx.coroutines.CoroutineScope
@@ -31,28 +30,20 @@ class ShowsStore(
     suspend fun getShow(page: String): Show {
         val show = showDao.findShowByPage(page)
 
-        if (show == null) {
-            throw TODO("What to do here ?")
+        // Update details if they aren't present
+        return if (show.synopsis == null || show.sid == null) {
+            val details = okHttpClient.fetchDetails(page)
+
+            showDao.updateShowSynopsis(
+                page,
+                StringListConverters.join(details.synopsis),
+                details.sid
+            )
+
+            show.copy(synopsis = details.synopsis, sid = details.sid)
         } else {
-            return show
+            show
         }
-    }
-
-    suspend fun updateDetails(page: String): Pair<List<String>, Int> {
-        // TODO Perhaps make that an interface/function to ease testing ?
-        val details = okHttpClient.fetchDetails(page)
-
-        // Join manually because room will infer something else for lists
-        showDao.updateShowSynopsis(page, StringListConverters.join(details.synopsis), details.sid)
-
-        return Pair(details.synopsis, details.sid)
-    }
-
-    suspend fun listDownloads(sid: Int): List<DownloadItem> {
-        val timezone = ZoneId.systemDefault()
-        val response = api.downloads(timezone, sid)
-
-        return response.episode.values.toList()
     }
 
     suspend fun subscribeToShow(page: String) {
