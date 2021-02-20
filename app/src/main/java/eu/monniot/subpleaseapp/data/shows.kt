@@ -6,6 +6,8 @@ import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
 
+// TODO Use an enum for releaseDay
+// TODO Should I change the data type for time ? Maybe LocalTime ?
 @Entity
 @Immutable
 data class Show(
@@ -23,10 +25,10 @@ data class Show(
 @Dao
 interface ShowDao {
 
-    @Query("SELECT * FROM show WHERE season = :season")
+    @Query("SELECT * FROM show WHERE season = :season ORDER BY time")
     fun subscribeToAllBySeason(season: String): Flow<List<Show>>
 
-    @Query("SELECT * FROM show WHERE season = :season AND subscribed = true")
+    @Query("SELECT * FROM show WHERE season = :season AND subscribed = true ORDER BY release_day, time")
     suspend fun findSubscriptionsBySeason(season: String): List<Show>
 
     @Query("SELECT * FROM show WHERE season = :season")
