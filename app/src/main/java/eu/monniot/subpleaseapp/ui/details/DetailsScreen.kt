@@ -26,15 +26,17 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dev.chrisbanes.accompanist.coil.CoilImage
+import eu.monniot.subpleaseapp.data.Episode
+import eu.monniot.subpleaseapp.data.EpisodeStore
 import eu.monniot.subpleaseapp.data.Show
 import eu.monniot.subpleaseapp.data.ShowsStore
 import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
-import java.time.ZonedDateTime
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.math.max
 import kotlin.math.min
@@ -46,7 +48,7 @@ data class DetailsState(
     val loadingShow: Boolean,
     val loadingSynopsis: Boolean,
     val loadingDownloads: Boolean,
-    val downloads: List<DownloadItem>,
+    val episodes: List<Episode>,
 ) {
 
     companion object {
@@ -54,9 +56,9 @@ data class DetailsState(
             DetailsState(
                 null,
                 loadingShow = true,
-                loadingSynopsis = true,
+                loadingSynopsis = true, // TODO remove
                 loadingDownloads = true,
-                downloads = emptyList()
+                episodes = emptyList()
             )
     }
 }
@@ -65,41 +67,44 @@ data class DetailsState(
 // TODO decide if we want to keep the ViewModel or not.
 class ShowViewModel(
     private val showsStore: ShowsStore,
+    private val episodeStore: EpisodeStore,
     private val showPage: String
 ) : ViewModel() {
 
+
+    private val _state = MutableStateFlow(DetailsState.default())
+
+    val state: StateFlow<DetailsState>
+        get() = _state.asStateFlow()
+
     // TODO Manage error cases ? We can assume that the page will exists, because otherwise
     // nothing would lead to this screen. But fetching the synopsis or download can fail.
-    val state: Flow<DetailsState>
-        get() {
-            return flow {
-                val show = showsStore.getShow(showPage)
-                val state = DetailsState.default()
-                    .copy(show = show, loadingShow = false, loadingSynopsis = show.synopsis == null)
-                emit(state)
+    init {
+        viewModelScope.launch {
+            val show = showsStore.getShow(showPage)
+            _state.value = _state.value
+                .copy(show = show, loadingShow = false, loadingSynopsis = show.synopsis == null)
 
-                val next = episodeStore.episodes(showPage).map { episodes ->
-                    if (episodes.isEmpty()) {
-                        state
-                    } else {
-                        state.copy(loadingDownloads = false, episodes = episodes)
-                    }
+            episodeStore.episodes(showPage).collect {
+                if (it.isNotEmpty()) {
+                    _state.value = _state.value.copy(loadingDownloads = false, episodes = it)
                 }
-                emitAll(next)
             }
         }
+    }
 
 }
 
 /**
  * Stateful component containing the logic to fetch a show details.
  */
+@ExperimentalCoroutinesApi
 @Composable
 fun DetailsScreen(
     viewModel: ShowViewModel,
     backButtonPress: () -> Unit, // TODO Should it be included in the ViewModel ?
 ) {
-    val state by viewModel.state.collectAsState(initial = DetailsState.default())
+    val state by viewModel.state.collectAsState()
 
     DetailsScreen(state, backButtonPress)
 }
@@ -239,16 +244,16 @@ fun Body(state: DetailsState, scroll: ScrollState) {
                                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                             }
                         } else {
-                            val today =
-                                ZonedDateTime.now().format(DateTimeFormatter.ofPattern("MM/dd/yy"))
-                            state.downloads.forEach { download ->
-                                download.episode
+                            val today = LocalDate.now()
+                            val formatter = DateTimeFormatter.ofPattern("MM/dd/yy")
+                            state.episodes.forEach { episode ->
+                                // TODO Display an icon in trailing depending on episode.state
                                 ListItem(
-                                    text = { Text(download.episode) },
+                                    text = { Text(episode.title) },
                                     secondaryText = {
                                         Row {
-                                            Text(download.releaseDate)
-                                            if (download.releaseDate == today) {
+                                            Text(episode.date.format(formatter))
+                                            if (episode.date == today) {
                                                 Text(
                                                     "New",
                                                     style = MaterialTheme.typography.overline,

@@ -15,6 +15,7 @@ import androidx.navigation.compose.*
 import eu.monniot.subpleaseapp.clients.deluge.DelugeClient
 import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
 import eu.monniot.subpleaseapp.data.AppDatabase
+import eu.monniot.subpleaseapp.data.EpisodeStore
 import eu.monniot.subpleaseapp.data.ShowsStore
 import eu.monniot.subpleaseapp.ui.details.DetailsScreen
 import eu.monniot.subpleaseapp.ui.details.ShowViewModel
@@ -27,10 +28,12 @@ import eu.monniot.subpleaseapp.ui.shows.ScheduleViewModel
 import eu.monniot.subpleaseapp.ui.shows.SubscriptionsScreen
 import eu.monniot.subpleaseapp.ui.shows.SubscriptionsViewModel
 import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 
 class MainActivity : AppCompatActivity() {
+    @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -51,7 +54,8 @@ class MainActivity : AppCompatActivity() {
         val api = SubsPleaseApi.build(http)
         val db = AppDatabase.build(applicationContext)
 
-        val store = ShowsStore(db.showDao(), api, http)
+        val showsStore = ShowsStore(db.showDao(), api, http)
+        val episodeStore = EpisodeStore(db.episodeDao(), db.showDao(), api)
 
         setContent {
             SubPleaseAppTheme {
@@ -98,7 +102,7 @@ class MainActivity : AppCompatActivity() {
 
                         NavHost(navController, startDestination = Screen.Subscriptions.route) {
                             composable(Screen.Schedule.route) {
-                                val scheduleViewModel = ScheduleViewModel(store)
+                                val scheduleViewModel = ScheduleViewModel(showsStore)
 
                                 ScheduleScreen(scheduleViewModel) { page ->
                                     navController.navigate("/details/$page")
@@ -106,7 +110,7 @@ class MainActivity : AppCompatActivity() {
                             }
 
                             composable(Screen.Subscriptions.route) {
-                                val subscriptionsViewModel = SubscriptionsViewModel(store)
+                                val subscriptionsViewModel = SubscriptionsViewModel(showsStore)
 
                                 SubscriptionsScreen(
                                     viewModel = subscriptionsViewModel,
@@ -145,7 +149,8 @@ class MainActivity : AppCompatActivity() {
                             ) {
                                 // The null cast should be safe because arguments are required before hand
                                 val page = it.arguments?.getString("page")!!
-                                val vm = ShowViewModel(store, page)
+                                val vm = ShowViewModel(showsStore, episodeStore, page)
+
                                 DetailsScreen(viewModel = vm, backButtonPress = {
                                     navController.popBackStack()
                                 })
