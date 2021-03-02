@@ -3,6 +3,7 @@
     package="eu.monniot.subpleaseapp">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
@@ -21,6 +22,31 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Needs to be enabled ourselves (see MainActivity) because it requires some flags. -->
+        <receiver
+            android:name=".scheduling.BootCompleteReceiver"
+            android:enabled="false"
+            android:exported="false">
+
+            <intent-filter>
+                <!-- Seen the category in a stackoverflow answer. Not sure if really needed. -->
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".scheduling.TimeChangedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".scheduling.AlarmReceiver" />
     </application>
 
 </manifest>

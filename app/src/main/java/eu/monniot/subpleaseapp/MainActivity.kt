@@ -1,5 +1,7 @@
 package eu.monniot.subpleaseapp
 
+import android.content.ComponentName
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import androidx.annotation.DrawableRes
@@ -17,6 +19,8 @@ import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
 import eu.monniot.subpleaseapp.data.AppDatabase
 import eu.monniot.subpleaseapp.data.EpisodeStore
 import eu.monniot.subpleaseapp.data.ShowsStore
+import eu.monniot.subpleaseapp.scheduling.AlertScheduling
+import eu.monniot.subpleaseapp.scheduling.BootCompleteReceiver
 import eu.monniot.subpleaseapp.ui.details.DetailsScreen
 import eu.monniot.subpleaseapp.ui.details.ShowViewModel
 import eu.monniot.subpleaseapp.ui.downloads.DownloadsScreen
@@ -37,6 +41,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Enable the Broadcast receiver. We do it here instead of through the Manifest because
+        // we want to set some flags.
+        val receiver = ComponentName(applicationContext, BootCompleteReceiver::class.java)
+        applicationContext.packageManager?.setComponentEnabledSetting(
+            receiver,
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            PackageManager.DONT_KILL_APP
+        )
+
         val items = listOf(
             Screen.Schedule,
             Screen.Subscriptions,
@@ -56,6 +69,8 @@ class MainActivity : AppCompatActivity() {
 
         val showsStore = ShowsStore(db.showDao(), api, http)
         val episodeStore = EpisodeStore(db.episodeDao(), db.showDao(), api)
+
+        val scheduling = AlertScheduling.build(showsStore, this)
 
         setContent {
             SubPleaseAppTheme {
@@ -102,7 +117,7 @@ class MainActivity : AppCompatActivity() {
 
                         NavHost(navController, startDestination = Screen.Subscriptions.route) {
                             composable(Screen.Schedule.route) {
-                                val scheduleViewModel = ScheduleViewModel(showsStore)
+                                val scheduleViewModel = ScheduleViewModel(showsStore, scheduling)
 
                                 ScheduleScreen(scheduleViewModel) { page ->
                                     navController.navigate("/details/$page")
@@ -110,7 +125,7 @@ class MainActivity : AppCompatActivity() {
                             }
 
                             composable(Screen.Subscriptions.route) {
-                                val subscriptionsViewModel = SubscriptionsViewModel(showsStore)
+                                val subscriptionsViewModel = SubscriptionsViewModel(showsStore, scheduling)
 
                                 SubscriptionsScreen(
                                     viewModel = subscriptionsViewModel,

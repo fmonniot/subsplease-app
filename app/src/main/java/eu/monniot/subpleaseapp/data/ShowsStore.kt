@@ -60,6 +60,13 @@ class ShowsStore(
             .groupBy(Show::releaseDay)
     }
 
+    /**
+     * Return a (Day -> Time) map of the latest subscribed shows.
+     */
+    suspend fun dailyLatestSubscribedShow(): Map<String, String> {
+        return subscriptions().mapValues { it.value.last().time }
+    }
+
     fun schedule(forceRefresh: Boolean = false): Flow<Map<String, List<Show>>> {
 
         val season = currentSeason()

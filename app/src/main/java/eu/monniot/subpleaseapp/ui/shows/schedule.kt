@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.monniot.subpleaseapp.data.Show
 import eu.monniot.subpleaseapp.data.ShowsStore
+import eu.monniot.subpleaseapp.scheduling.AlertScheduling
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
@@ -14,7 +15,10 @@ import java.time.format.TextStyle
 import java.util.*
 
 
-class ScheduleViewModel(private val showsStore: ShowsStore): ViewModel() {
+class ScheduleViewModel(
+    private val showsStore: ShowsStore,
+    private val scheduling: AlertScheduling
+) : ViewModel() {
 
     val schedule: Flow<Map<String, List<Show>>>
         get() = showsStore.schedule()
@@ -25,11 +29,13 @@ class ScheduleViewModel(private val showsStore: ShowsStore): ViewModel() {
 
     fun toggleShowSubscription(show: Show) {
         viewModelScope.launch {
-            if(show.subscribed) {
+            if (show.subscribed) {
                 showsStore.unsubscribeToShow(show.page)
             } else {
                 showsStore.subscribeToShow(show.page)
             }
+
+            scheduling.schedule()
         }
     }
 }
