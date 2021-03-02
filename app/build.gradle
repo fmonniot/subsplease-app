@@ -42,35 +42,42 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
         useIR = true
+
+        freeCompilerArgs += ['-Xopt-in=kotlin.RequiresOptIn']
+
+        // Doesn't seems to be required after all
+        //freeCompilerArgs += ["-Xallow-jvm-ir-dependencies"]
     }
     buildFeatures {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion compose_version
+        kotlinCompilerVersion kotlinVersion
+        kotlinCompilerExtensionVersion composeVersion
     }
 }
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.3.2'
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.2.1'
-    implementation "androidx.compose.ui:ui:$compose_version"
-    implementation "androidx.compose.ui:ui-util:$compose_version"
-    implementation "androidx.compose.material:material:$compose_version"
-    implementation "androidx.compose.ui:ui-tooling:$compose_version"
-    implementation "androidx.navigation:navigation-compose:1.0.0-alpha06"
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.0-rc01'
+    implementation 'com.google.android.material:material:1.3.0'
+    implementation "androidx.compose.ui:ui:$composeVersion"
+    implementation "androidx.compose.ui:ui-util:$composeVersion"
+    implementation "androidx.compose.material:material:$composeVersion"
+    debugImplementation "androidx.compose.ui:ui-tooling:$composeVersion"
+    implementation "androidx.navigation:navigation-compose:1.0.0-alpha08"
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.0'
+    implementation "androidx.activity:activity-compose:1.3.0-alpha03"
     implementation "androidx.security:security-crypto:1.1.0-alpha03"
     implementation "androidx.room:room-runtime:2.2.6"
     implementation "androidx.room:room-ktx:2.2.6"
 
     kapt "androidx.room:room-compiler:2.2.6"
 
-    implementation "dev.chrisbanes.accompanist:accompanist-coil:0.5.0"
-    implementation 'com.github.moove-it:fakeit:v0.7'
+    debugImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
 
-    implementation 'org.jetbrains.anko:anko-sqlite:0.10.8'
+    implementation "dev.chrisbanes.accompanist:accompanist-coil:0.6.1"
+    implementation 'com.github.moove-it:fakeit:v0.7'
 
     implementation 'org.jsoup:jsoup:1.12.1'
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'

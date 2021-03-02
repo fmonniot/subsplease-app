@@ -4,13 +4,13 @@ import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.compose.setContent
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.platform.AmbientContext
-import androidx.compose.ui.platform.setContent
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -91,13 +91,13 @@ class MainActivity : AppCompatActivity() {
                                     BottomNavigationItem(
                                         icon = {
                                             Icon(
-                                                vectorResource(screen.iconId),
+                                                painterResource(screen.iconId),
                                                 contentDescription = screen.label
                                             )
                                         },
                                         label = { Text(screen.label) },
                                         selected = currentRoute == screen.route,
-                                        alwaysShowLabels = false,
+                                        alwaysShowLabel = false,
                                         onClick = {
                                             navController.navigate(screen.route) {
                                                 // Pop up to the start destination of the graph to
@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
                             }
 
                             composable(Screen.Downloads.route) {
-                                val context = AmbientContext.current
+                                val context = LocalContext.current
                                 val preferences = openSharedPrefs(context)
 
                                 // TODO Use values through remember and accessor

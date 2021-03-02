@@ -11,7 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.AmbientContext
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import eu.monniot.subpleaseapp.BuildConfig
@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat
 @Composable
 fun SettingsScreen() {
 
-    val preferences = openSharedPrefs(AmbientContext.current)
+    val preferences = openSharedPrefs(LocalContext.current)
 
     LazyColumn(
         modifier = Modifier.padding(bottom = 56.dp) // for the bottom bar
@@ -106,6 +106,7 @@ fun SettingsScreen() {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SwitchPreference(
     label: String,
@@ -211,6 +212,7 @@ fun TextFieldDialog(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ListChoiceDialog(
     title: String,
@@ -295,6 +297,7 @@ fun SettingDialog(
     )
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ClickPreference(
     label: String,
@@ -320,6 +323,7 @@ fun ClickPreference(
 }
 
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Category(name: String, content: @Composable (() -> Unit)) {
     Divider(color = MaterialTheme.colors.onSurface.copy(alpha = 0.08f))

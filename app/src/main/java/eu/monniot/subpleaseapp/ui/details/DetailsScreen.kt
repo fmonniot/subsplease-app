@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.platform.AmbientDensity
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -144,7 +144,7 @@ fun DetailsScreen(
 fun Header() {
     Spacer(
         modifier = Modifier
-            .preferredHeight(280.dp) // TODO Why not GradientScroll
+            .height(280.dp) // TODO Why not GradientScroll
             .fillMaxWidth()
             .background(
                 Brush.horizontalGradient(
@@ -163,7 +163,7 @@ fun Back(onClick: () -> Unit) {
     IconButton(
         onClick = onClick, modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 10.dp)
-            .preferredSize(36.dp)
+            .size(36.dp)
             .background(
                 color = Color(0xff121212).copy(alpha = 0.32f),
                 shape = CircleShape
@@ -177,6 +177,7 @@ fun Back(onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Body(state: DetailsState, scroll: ScrollState) {
     Column {
@@ -184,12 +185,12 @@ fun Body(state: DetailsState, scroll: ScrollState) {
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
-                .preferredHeight(MinTitleOffset)
+                .height(MinTitleOffset)
         )
 
         Column(modifier = Modifier.verticalScroll(scroll)) {
             // Space taken by the Header() component (gradient)
-            Spacer(modifier = Modifier.preferredHeight(GradientScroll))
+            Spacer(modifier = Modifier.height(GradientScroll))
 
             // We want to paint a surface on top of the gradient when we scroll up.
             // Because of how compose works, we then have to put the entire content within
@@ -197,17 +198,17 @@ fun Body(state: DetailsState, scroll: ScrollState) {
             // the first spacers ?
             Surface(Modifier.background(MaterialTheme.colors.surface)) {
                 Column {
-                    Spacer(Modifier.preferredHeight(ImageOverlap))
-                    Spacer(Modifier.preferredHeight(TitleHeight))
+                    Spacer(Modifier.height(ImageOverlap))
+                    Spacer(Modifier.height(TitleHeight))
 
-                    Spacer(Modifier.preferredHeight(16.dp))
+                    Spacer(Modifier.height(16.dp))
                     Text(
                         text = "Synopsis",
                         style = MaterialTheme.typography.overline,
                         //color = JetsnackTheme.colors.textHelp,
                         modifier = HzPadding
                     )
-                    Spacer(Modifier.preferredHeight(4.dp))
+                    Spacer(Modifier.height(4.dp))
 
                     // Actual content
                     val synopsis = state.show?.synopsis
@@ -230,14 +231,14 @@ fun Body(state: DetailsState, scroll: ScrollState) {
                     // When we are done loading the synopsis, display the downloads
                     // No need to display them before that, as it's a sequential operation
                     if (!state.loadingSynopsis) {
-                        Spacer(Modifier.preferredHeight(40.dp))
+                        Spacer(Modifier.height(40.dp))
                         Text(
                             text = "Downloads",
                             style = MaterialTheme.typography.overline,
                             //color = JetsnackTheme.colors.textHelp,
                             modifier = HzPadding
                         )
-                        Spacer(Modifier.preferredHeight(4.dp))
+                        Spacer(Modifier.height(4.dp))
 
                         if (state.loadingDownloads) {
                             Box(Modifier.fillMaxWidth()) {
@@ -271,7 +272,7 @@ fun Body(state: DetailsState, scroll: ScrollState) {
                     Spacer(
                         modifier = Modifier
                             .padding(bottom = 56.dp)
-                            .preferredHeight(8.dp)
+                            .height(8.dp)
                     )
                 }
             }
@@ -280,16 +281,16 @@ fun Body(state: DetailsState, scroll: ScrollState) {
 }
 
 @Composable
-fun Title(state: DetailsState, scroll: Float) {
+fun Title(state: DetailsState, scroll: Int) {
     // We clamp the offset between two position
-    val maxOffset = with(AmbientDensity.current) { MaxTitleOffset.toPx() }
-    val minOffset = with(AmbientDensity.current) { MinTitleOffset.toPx() }
+    val maxOffset = with(LocalDensity.current) { MaxTitleOffset.toPx() }
+    val minOffset = with(LocalDensity.current) { MinTitleOffset.toPx() }
     val offset = (maxOffset - scroll).coerceAtLeast(minOffset)
 
     // We also adjust the padding on the image side as it moves.
     // TODO Use a non-linear function as the image itself doesn't move horizontally linearly
     // with the scroll position.
-    val collapseRange = with(AmbientDensity.current) { (MaxTitleOffset - MinTitleOffset).toPx() }
+    val collapseRange = with(LocalDensity.current) { (MaxTitleOffset - MinTitleOffset).toPx() }
     val collapseFraction = (scroll / collapseRange).coerceIn(0f, 1f)
     val endPadding = (CollapsedImageSize + 5.dp) * collapseFraction
 
@@ -297,7 +298,7 @@ fun Title(state: DetailsState, scroll: Float) {
         verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.Start,
         modifier = Modifier
-            .preferredHeight(TitleHeight)
+            .height(TitleHeight)
             .graphicsLayer(translationY = offset)
             .background(color = MaterialTheme.colors.background)
             .padding(end = endPadding)
@@ -316,8 +317,8 @@ fun Title(state: DetailsState, scroll: Float) {
 // TODO Adjust constant to work with a rectangle instead of a square image
 // Of interest, the horizontal positioning is not ideal at the moment
 @Composable
-fun Image(state: DetailsState, scroll: Float) {
-    val collapseRange = with(AmbientDensity.current) { (MaxTitleOffset - MinTitleOffset).toPx() }
+fun Image(state: DetailsState, scroll: Int) {
+    val collapseRange = with(LocalDensity.current) { (MaxTitleOffset - MinTitleOffset).toPx() }
     val collapseFraction = (scroll / collapseRange).coerceIn(0f, 1f)
 
     CollapsingImageLayout(
@@ -350,6 +351,7 @@ fun Image(state: DetailsState, scroll: Float) {
     }
 }
 
+@Suppress("SameParameterValue")
 @Composable
 private fun CollapsingImageLayout(
     collapseFraction: Float,
@@ -362,12 +364,12 @@ private fun CollapsingImageLayout(
     ) { measurables, constraints ->
         check(measurables.size == 1)
 
-        val imageMaxSize = min(ExpandedImageSize.toIntPx(), constraints.maxWidth)
-        val imageMinSize = max(CollapsedImageSize.toIntPx(), constraints.minWidth)
+        val imageMaxSize = min(ExpandedImageSize.roundToPx(), constraints.maxWidth)
+        val imageMinSize = max(CollapsedImageSize.roundToPx(), constraints.minWidth)
         val imageWidth = lerp(imageMaxSize, imageMinSize, collapseFraction)
         val imagePlaceable = measurables[0].measure(Constraints.fixed(imageWidth, imageWidth))
 
-        val imageY = lerp(MinTitleOffset, MinImageOffset, collapseFraction).toIntPx()
+        val imageY = lerp(MinTitleOffset, MinImageOffset, collapseFraction).roundToPx()
         val imageX = lerp(
             (constraints.maxWidth - imageWidth) / 2, // centered when expanded
             constraints.maxWidth - imageWidth, // right aligned when collapsed

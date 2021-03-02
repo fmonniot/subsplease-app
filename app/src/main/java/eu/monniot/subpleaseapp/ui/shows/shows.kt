@@ -2,7 +2,7 @@ package eu.monniot.subpleaseapp.ui.shows
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.preferredSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -58,6 +58,7 @@ fun ShowsScreen(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun ShowItem(
     showTitle: String,
@@ -77,7 +78,7 @@ private fun ShowItem(
                 contentDescription = "${showTitle}'s icon",
                 fadeIn = true,
                 modifier = Modifier
-                    .preferredSize(56.dp, 78.dp) // 225w/317h | 56dp/78dp
+                    .size(56.dp, 78.dp) // 225w/317h | 56dp/78dp
                     .clip(RoundedCornerShape(2.dp))
             )
         },
@@ -109,7 +110,7 @@ fun SelectTopicButton(
         color = backgroundColor,
         shape = CircleShape,
         modifier = modifier
-            .preferredSize(36.dp, 36.dp)
+            .size(36.dp, 36.dp)
             .clickable { onClick() }
     ) {
         Icon(icon, contentDescription = null)
