@@ -7,13 +7,16 @@ import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import eu.monniot.subpleaseapp.clients.deluge.DelugeClient
 import eu.monniot.subpleaseapp.clients.subsplease.SubsPleaseApi
 import eu.monniot.subpleaseapp.data.AppDatabase
@@ -37,7 +40,8 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 
 class MainActivity : AppCompatActivity() {
-    @ExperimentalCoroutinesApi
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -84,7 +88,7 @@ class MainActivity : AppCompatActivity() {
                                 // TODO Need to understand what it means for this to be null. Is it
                                 // safe to assume the first screen shown (for use /schedule) ?
                                 val currentRoute =
-                                    navBackStackEntry?.arguments?.getString(KEY_ROUTE)
+                                    navBackStackEntry?.destination?.route
                                         ?: Screen.Subscriptions.route
                                 Log.d("currentRoute = ", currentRoute)
                                 items.forEach { screen ->
@@ -103,7 +107,7 @@ class MainActivity : AppCompatActivity() {
                                                 // Pop up to the start destination of the graph to
                                                 // avoid building up a large stack of destinations
                                                 // on the back stack as users select items
-                                                popUpTo = navController.graph.startDestination
+                                                popUpTo(navController.graph.startDestinationId)
                                                 // Avoid multiple copies of the same destination when
                                                 // reselecting the same item
                                                 launchSingleTop = true
@@ -113,9 +117,13 @@ class MainActivity : AppCompatActivity() {
                                 }
                             }
                         }
-                    ) {
+                    ) { padding ->
 
-                        NavHost(navController, startDestination = Screen.Subscriptions.route) {
+                        NavHost(
+                            navController,
+                            startDestination = Screen.Subscriptions.route,
+                            modifier = Modifier.padding(padding)
+                        ) {
                             composable(Screen.Schedule.route) {
                                 val scheduleViewModel = ScheduleViewModel(showsStore, scheduling)
 
@@ -125,7 +133,8 @@ class MainActivity : AppCompatActivity() {
                             }
 
                             composable(Screen.Subscriptions.route) {
-                                val subscriptionsViewModel = SubscriptionsViewModel(showsStore, scheduling)
+                                val subscriptionsViewModel =
+                                    SubscriptionsViewModel(showsStore, scheduling)
 
                                 SubscriptionsScreen(
                                     viewModel = subscriptionsViewModel,

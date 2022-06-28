@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.chrisbanes.accompanist.coil.CoilImage
+import coil.compose.AsyncImage
 import eu.monniot.subpleaseapp.data.Episode
 import eu.monniot.subpleaseapp.data.EpisodeStore
 import eu.monniot.subpleaseapp.data.Show
@@ -342,8 +342,9 @@ fun Image(state: DetailsState, scroll: Int) {
                     "https://subsplease.org${state.show.imageUrl}"
                 } else state.show.imageUrl
 
-            CoilImage(
-                data = url,
+
+            AsyncImage(
+                model = url,
                 contentDescription = null,
                 contentScale = ContentScale.FillHeight
             )

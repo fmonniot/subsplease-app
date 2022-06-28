@@ -14,9 +14,11 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.chrisbanes.accompanist.coil.CoilImage
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import eu.monniot.subpleaseapp.data.Show
 import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
 
@@ -35,7 +37,11 @@ fun ShowsScreen(
     LazyColumn(modifier = Modifier.padding(top = 16.dp, bottom = 56.dp)) {
 
         items(schedule.toList()) { (day, shows) ->
-            val titleColor = if(today == day) { MaterialTheme.colors.primary } else { MaterialTheme.colors.onSurface }
+            val titleColor = if (today == day) {
+                MaterialTheme.colors.primary
+            } else {
+                MaterialTheme.colors.onSurface
+            }
             Text(
                 text = day,
                 modifier = Modifier.padding(16.dp),
@@ -71,12 +77,14 @@ private fun ShowItem(
     ListItem(
         modifier = Modifier.clickable(onClickLabel = "More details") { onClick() },
         icon = {
-            CoilImage(
+            AsyncImage(
                 // TODO We should probably inject the host in the DB records
                 // that we don't have to deal with it here (or if we change the source)
-                data = "https://subsplease.org${imageUrl}",
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data("https://subsplease.org${imageUrl}")
+                    .crossfade(true)
+                    .build(),
                 contentDescription = "${showTitle}'s icon",
-                fadeIn = true,
                 modifier = Modifier
                     .size(56.dp, 78.dp) // 225w/317h | 56dp/78dp
                     .clip(RoundedCornerShape(2.dp))

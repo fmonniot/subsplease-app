@@ -4,8 +4,10 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import eu.monniot.subpleaseapp.data.ShowsStore
 import java.time.Instant
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.util.*
@@ -37,15 +39,24 @@ interface AlertScheduling {
 
 
     companion object {
+        private val TAG = AlertScheduling::class.java.simpleName
+
         fun build(store: ShowsStore, context: Context): AlertScheduling {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
             return object : AlertScheduling {
                 override suspend fun schedule() {
                     val subs = store.dailyLatestSubscribedShow()
+
+                    // If no subscriptions set, we have nothing to schedule
+                    if (subs.isEmpty()) {
+                        return
+                    }
+
                     val today = ZonedDateTime.now()
 
-                    val triggerAtMillis = findNextAlarmTime(today, subs)
+                    val triggerAt = findNextAlarmTime(today, subs)
+                    Log.d(TAG, "Next alert set for ${triggerAt.atZone(ZoneId.systemDefault())}")
 
                     val intent = Intent(context, AlarmReceiver::class.java)
                     val pending = PendingIntent.getBroadcast(
@@ -56,24 +67,40 @@ interface AlertScheduling {
                     // Given that the Intent and PendingIntent is always the same, it will cancel
                     // previous intent and set this one as reference
                     // TODO Verify AlarmManager behaviour
-                    alarmManager.set(AlarmManager.RTC, triggerAtMillis.toEpochMilli(), pending)
+                    alarmManager.set(AlarmManager.RTC, triggerAt.toEpochMilli(), pending)
                 }
             }
         }
 
-        // TODO Change the subs parameter to use whatever
-        fun findNextAlarmTime(today: ZonedDateTime, subs: Map<String, String>): Instant {
-            val today = ZonedDateTime.now().dayOfWeek.getDisplayName(
-                TextStyle.FULL,
-                Locale.getDefault()
-            )
+        // TODO Change the subs parameter to use DayOfWeek as key
+        // That will let us sort the Map correctly. For now we assume it is ordered
+        // in the natural order for days (eg. Mon, Tue, Wed, Thu, Fri, Sat, Sun)
+        fun findNextAlarmTime(now: ZonedDateTime, subs: Map<String, String>): Instant {
+            require(subs.isNotEmpty()) { "Subscriptions list cannot be empty when finding next alarm time" }
 
-            // TODO Decide when is the next trigger
-            // How to decide if we need to set the alarm for today's show ?
-            val triggerAtMillis: Long = System.currentTimeMillis() + 42*1000 // TODO
+            // Let's find the next day with some subscriptions.
+            var time: String? = null // time is "04:30" format, in user locale
+            var lookingAtDay = now.dayOfWeek
+            var dayCounter = 0
+            while (time == null) {
+                dayCounter += 1   // Count the number of days we look into the future
+                lookingAtDay += 1 // This will wrap from Sunday to Monday automatically
+                time = subs[lookingAtDay.getDisplayName(
+                    TextStyle.FULL,
+                    Locale.getDefault()
+                )]
+            }
 
+            val t = java.time.LocalTime.parse(time)
 
-            return Instant.ofEpochMilli(triggerAtMillis)
+            // TODO Should we introduce a bit of latency here ?
+            // It really depends if the shows are available at the minute or later on. Needs data.
+            return now
+                .plusDays(dayCounter.toLong())
+                .withHour(t.hour)
+                .withMinute(t.minute)
+                .withSecond(0)
+                .toInstant()
         }
     }
 }

@@ -46,13 +46,12 @@ fun DownloadsScreen(client: DelugeClient) {
         items(torrents) { torrent ->
             ListItem(
                 icon = {
-                    // TODO Understand how to fill ImageVector based on a percentage
                     // TODO Change icon when at 100% (done)
                     DownloadIcon(percent = torrent.progress.toFloat())
 
                     /* Something like that for complete icon
                     Icon(
-                        vectorResource(R.drawable.ic_outline_complete_24),
+                        Icons.Outlined.Done,
                         contentDescription = "Torrent downloaded"
                     )
                     */

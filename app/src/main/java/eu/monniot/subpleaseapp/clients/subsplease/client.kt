@@ -130,7 +130,7 @@ suspend fun OkHttpClient.fetchDetails(page: String): ShowDetails {
 internal fun parseDetails(html: String): ShowDetails {
     val doc = Jsoup.parse(html)
     val synopsis = doc.select(".series-syn p").toList().map { it.text() }
-    val sid = doc.select("table#show-release-table").first().attr("sid").toInt()
+    val sid = doc.select("table#show-release-table").first()?.attr("sid")?.toInt()!!
 
     return ShowDetails(synopsis, sid)
 }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!--  Commit a TODO but not the following line (don't expose my domain)  -->
+        <domain includeSubdomains="true">scale.ashelia.xyz</domain>
+    </domain-config>
+</network-security-config>

@@ -45,7 +45,7 @@ object Arrow {
         Inner.lineTo(1.4f, 4.4f)
         Inner.lineTo(1.4f, .4f)
 
-        Outline = Path.combine(PathOperation.difference, outer, Inner)
+        Outline = Path.combine(PathOperation.Difference, outer, Inner)
     }
 }
 
