@@ -123,6 +123,8 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 }
 
+// Too bad, I rebooted my phone yesterday and thus didn't test this…
+
 /**
  * This receiver gets called everytime a user reboot its device. We need
  * to plan our alarms again when it happens.
@@ -134,6 +136,8 @@ class BootCompleteReceiver : BroadcastReceiver() {
         }
     }
 }
+
+// Too bad, It was daylight change yesterday and thus didn't test this…
 
 /**
  * This receiver gets called everytime a user change the system time, which

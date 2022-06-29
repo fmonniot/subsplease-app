@@ -102,6 +102,8 @@ class DelugeClient(
                     if (parsed == null) {
                         Result.ParsingError("Couldn't parse the JSON")
                     } else {
+                        // TODO Also return the space available, it's going to be useful to know
+                        // if we should start a download immediately or not.
                         Result.success(parsed.result.torrents.map {
                             Torrent.fromPartial(it.value, it.key)
                         })

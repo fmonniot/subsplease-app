@@ -7,12 +7,14 @@ import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -38,6 +40,8 @@ import eu.monniot.subpleaseapp.ui.theme.SubPleaseAppTheme
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+
+private const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity() {
 
@@ -90,7 +94,7 @@ class MainActivity : AppCompatActivity() {
                                 val currentRoute =
                                     navBackStackEntry?.destination?.route
                                         ?: Screen.Subscriptions.route
-                                Log.d("currentRoute = ", currentRoute)
+                                Log.d(TAG, "currentRoute = $currentRoute")
                                 items.forEach { screen ->
                                     BottomNavigationItem(
                                         icon = {
@@ -156,9 +160,15 @@ class MainActivity : AppCompatActivity() {
                                     DownloadsScreen(client = client)
 
                                 } else {
-                                    Text("Set up server configuration in the Settings please")
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text("No server configured.")
+                                        Text("Set up one in the settings.")
+                                    }
                                 }
-
                             }
 
                             composable(Screen.Settings.route) {

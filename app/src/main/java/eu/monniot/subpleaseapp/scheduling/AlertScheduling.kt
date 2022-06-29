@@ -12,6 +12,8 @@ import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.util.*
 
+private val TAG = AlertScheduling::class.java.simpleName
+
 /**
  * Needs an abstraction to install the Alarm (to easily mock it in tests).
  * Can be either a simple function or an interface (or a functional interface).
@@ -39,8 +41,6 @@ interface AlertScheduling {
 
 
     companion object {
-        private val TAG = AlertScheduling::class.java.simpleName
-
         fun build(store: ShowsStore, context: Context): AlertScheduling {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 

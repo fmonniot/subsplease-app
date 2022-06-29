@@ -27,6 +27,8 @@ private val LightColorPalette = lightColors(
     */
 )
 
+// TODO Add a setting to force based on user preference
+// Lookup how it is done in compose-samples
 @Composable
 fun SubPleaseAppTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable() () -> Unit) {
     val colors = if (darkTheme) {

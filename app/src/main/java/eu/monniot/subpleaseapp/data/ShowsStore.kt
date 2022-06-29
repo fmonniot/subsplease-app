@@ -58,6 +58,7 @@ class ShowsStore(
         return showDao
             .findSubscriptionsBySeason(currentSeason())
             .groupBy(Show::releaseDay)
+            .toSortedMap(weeklyComparator)
     }
 
     /**
@@ -108,7 +109,7 @@ class ShowsStore(
             // Do emit further changes
             emitAll(showDao.subscribeToAllBySeason(season))
 
-        }.map { it.groupBy(Show::releaseDay) }
+        }.map { it.groupBy(Show::releaseDay).toSortedMap(weeklyComparator) }
     }
 
     companion object {
@@ -118,6 +119,22 @@ class ShowsStore(
             val year = zdt.get(ChronoField.YEAR)
 
             return "${year}Q$quarter"
+        }
+
+        private fun weekDayIndex(day: String) =
+            when (day) {
+                "Monday" -> 0
+                "Tuesday" -> 1
+                "Wednesday" -> 2
+                "Thursday" -> 3
+                "Friday" -> 4
+                "Saturday" -> 5
+                "Sunday" -> 6
+                else -> 7
+            }
+
+        val weeklyComparator = Comparator<String> { d0, d1 ->
+            weekDayIndex(d0).compareTo(weekDayIndex(d1))
         }
     }
 }

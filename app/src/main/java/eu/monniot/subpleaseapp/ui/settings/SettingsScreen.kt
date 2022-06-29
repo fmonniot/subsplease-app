@@ -24,9 +24,7 @@ fun SettingsScreen() {
 
     val preferences = openSharedPrefs(LocalContext.current)
 
-    LazyColumn(
-        modifier = Modifier.padding(bottom = 56.dp) // for the bottom bar
-    ) {
+    LazyColumn {
         item {
             Category(name = "Deluge") {
                 TextPreference(
@@ -69,6 +67,8 @@ fun SettingsScreen() {
                     pref = preferences.string("deluge_http_password"),
                     disabled = !useHttpBasicAuth.value
                 )
+
+                // TODO Add filtering by label (requires plugins to be enabled)
             }
         }
 
@@ -77,15 +77,21 @@ fun SettingsScreen() {
 
                 ClickPreference(
                     label = "Clear Cache",
-                    summary = "Call subsplease on the next shows display",
+                    summary = "Will call subsplease on the next shows display",
                     onClick = { /*TODO*/ }
                 )
 
+                // Don't expose SD as it can be 540 or 480
+                // Bring it back when I know how to store this information locally.
+                // (or bring myself to care ^^)
                 ListPreference(
                     label = "Download Quality",
                     pref = preferences.string("subsplease_download_quality"),
-                    values = listOf("540p", "720p", "1080p")
+                    values = listOf("720p", "1080p")
                 )
+
+                // TODO When to trigger the downloads. Daily at what time ?
+                // Or maybe do it dynamically based on the active subscriptions ?
             }
         }
 

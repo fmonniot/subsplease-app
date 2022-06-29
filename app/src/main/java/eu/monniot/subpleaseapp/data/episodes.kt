@@ -78,7 +78,7 @@ class EpisodeStore(
         val today = LocalDate.now()
         val timezone = ZoneId.systemDefault()
 
-        println("episodes.page = $page")
+        Log.d(TAG, "episodes.page = $page")
 
         return flow {
             val initial = episodeDao.findByShow(page)
@@ -86,7 +86,14 @@ class EpisodeStore(
 
             val lastEp = initial.maxByOrNull { it.date }
 
-            println("####> episodeStore.episodes.refresh = ${forceRefresh || lastEp?.date?.isBefore(today.minusDays(7)) != false}")
+            Log.d(
+                TAG,
+                "####> episodeStore.episodes.refresh = ${
+                    forceRefresh || lastEp?.date?.isBefore(
+                        today.minusDays(7)
+                    ) != false
+                }"
+            )
             // Nothing in db (lastEp is null) => downloads
             // last ep is older than a week   => downloads
             // TODO If the season completed => no downloads
@@ -102,7 +109,10 @@ class EpisodeStore(
                         )
                     })
                 } else {
-                    Log.w(TAG, "Tried to update episode list for show $page but no show.sid available")
+                    Log.w(
+                        TAG,
+                        "Tried to update episode list for show $page but no show.sid available"
+                    )
                 }
             }
 

@@ -1,6 +1,12 @@
 package eu.monniot.subpleaseapp.ui.shows
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.monniot.subpleaseapp.data.Show
@@ -75,10 +81,21 @@ fun SubscriptionsScreen(
 ) {
     val schedule by remember { viewModel.state }
 
-    ShowsScreen(
-        navigateShowDetail = navigateShowDetail,
-        schedule = schedule,
-        today = viewModel.today,
-        toggleShowSubscription = viewModel::toggleShowSubscription
-    )
+    if (schedule.isEmpty()) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("No subscriptions.")
+            Text("Set up one in the schedule view.")
+        }
+    } else {
+        ShowsScreen(
+            navigateShowDetail = navigateShowDetail,
+            schedule = schedule,
+            today = viewModel.today,
+            toggleShowSubscription = viewModel::toggleShowSubscription
+        )
+    }
 }

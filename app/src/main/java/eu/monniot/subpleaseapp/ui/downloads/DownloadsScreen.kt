@@ -19,6 +19,8 @@ import eu.monniot.subpleaseapp.R
 import eu.monniot.subpleaseapp.clients.deluge.DelugeClient
 
 
+private const val TAG = "DownloadsScreen"
+
 /**
  * Stateful component to handle the download screen
  */
@@ -29,10 +31,10 @@ fun DownloadsScreen(client: DelugeClient) {
 
     LaunchedEffect(key1 = Unit) {
         val login = client.login()
-        Log.d("subapp.downloads", "login: $login")
+        Log.d(TAG, "login: $login")
 
         val result = client.listTorrents()
-        Log.d("subapp.downloads", "list: $result")
+        Log.d(TAG, "list: $result")
 
         // Real error management, with visual
         val list = result.get()
@@ -61,6 +63,7 @@ fun DownloadsScreen(client: DelugeClient) {
                     // Change text based on done or not
                     // Change text based on paused or not
 
+                    // TODO Clip Float to two digits
                     Text("${torrent.progress}% - ETA: ${torrent.eta} - Progress: ${torrent.progress}")
                 }
             )

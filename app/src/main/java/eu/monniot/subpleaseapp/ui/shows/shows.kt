@@ -34,7 +34,7 @@ fun ShowsScreen(
     schedule: Map<String, List<Show>>,
 ) {
 
-    LazyColumn(modifier = Modifier.padding(top = 16.dp, bottom = 56.dp)) {
+    LazyColumn {
 
         items(schedule.toList()) { (day, shows) ->
             val titleColor = if (today == day) {
